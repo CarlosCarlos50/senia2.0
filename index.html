@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SeñIA - Dashboard</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+    <style>
+        /* 1. VARIABLES DE COLOR (MODO OSCURO POR DEFECTO) */
+        :root {
+            --bg-color: #0b2926;      /* Fondo verde oscuro */
+            --primary: #2de0d4;       /* Cian neón */
+            --primary-glow: rgba(45, 224, 212, 0.4); 
+            --text-main: #ffffff;     /* Blanco */
+            --text-muted: #8abeb9;    /* Gris azulado */
+            --card-bg: #113b37;       /* Tarjetas oscuras */
+            --nav-bg: #071f1c;
+        }
+
+        /* 2. VARIABLES PARA MODO CLARO */
+        [data-theme="light"] {
+            --bg-color: #f0f4f4;      /* Fondo gris muy claro */
+            --primary: #1a9e95;       /* Turquesa más oscuro para contraste */
+            --primary-glow: rgba(26, 158, 149, 0.2);
+            --text-main: #1a2e2c;     /* Texto casi negro */
+            --text-muted: #5a7a76;    /* Gris oscuro */
+            --card-bg: #ffffff;       /* Tarjetas blancas */
+            --nav-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            color: var(--text-main);
+            overflow-x: hidden;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        /* 3. BOTÓN DE MODO OSCURO/CLARO */
+        .theme-toggle {
+            position: fixed;
+            top: 25px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--card-bg);
+            color: var(--primary);
+            border: 1px solid var(--primary-glow);
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* PANTALLA DE CARGA */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #0b2926; /* Siempre oscuro al cargar */
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
+        }
+
+        #splash-screen img { width: 250px; animation: pulse 1.5s infinite alternate; }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; filter: drop-shadow(0 0 10px rgba(45, 224, 212, 0.4)); }
+            100% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 25px #2de0d4); }
+        }
+
+        .splash-hidden { opacity: 0; visibility: hidden; }
+
+        #main-content {
+            opacity: 0; transform: translateY(30px);
+            transition: opacity 1s ease-out, transform 1s ease-out;
+        }
+
+        #main-content.visible { opacity: 1; transform: translateY(0); }
+
+        /* DASHBOARD ESTILOS */
+        .page-header { padding: 30px 20px 10px; }
+        .page-header h1 { margin: 0; font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+        .page-header p { margin: 5px 0 0; color: var(--text-muted); font-size: 0.95rem; }
+
+        main { padding: 10px 20px 100px; }
+
+        .hero-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: 0 10px 25px var(--primary-glow);
+            border: 1px solid var(--primary-glow);
+            margin-bottom: 25px;
+            transition: background-color 0.4s ease;
+        }
+
+        .hero-card h2 { margin: 0 0 5px; font-size: 1.5rem; color: var(--primary); }
+        .hero-card p { margin: 0 0 15px; font-size: 0.9rem; color: var(--text-muted); }
+        
+        .hero-btn {
+            background: var(--primary);
+            color: #000; border: none; padding: 10px 20px; border-radius: 12px;
+            font-weight: bold; cursor: pointer; display: inline-flex;
+            align-items: center; gap: 8px; transition: 0.2s;
+        }
+        .hero-btn:hover { box-shadow: 0 0 15px var(--primary); }
+
+        /* GRID LECCIONES */
+        .grid-lecciones { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .leccion-card {
+            background: var(--card-bg);
+            border-radius: 20px; padding: 20px; text-decoration: none; color: inherit;
+            border: 1px solid rgba(128,128,128,0.1);
+            display: flex; flex-direction: column; align-items: flex-start;
+            transition: all 0.3s ease;
+        }
+
+        .leccion-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 5px 15px var(--primary-glow); }
+
+        .leccion-icon {
+            width: 45px; height: 45px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; margin-bottom: 12px;
+            background: var(--primary-glow); color: var(--primary);
+        }
+
+        .leccion-card h3 { margin: 0; font-size: 1rem; font-weight: 600; color: var(--text-main); }
+        .leccion-card p { margin: 4px 0 0; font-size: 0.8rem; color: var(--text-muted); }
+
+        /* NAVEGACIÓN INFERIOR */
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%;
+            background: var(--nav-bg);
+            display: flex; justify-content: space-around;
+            padding: 15px 0; border-top: 1px solid var(--primary-glow);
+            border-top-left-radius: 24px; border-top-right-radius: 24px;
+            transition: background-color 0.4s ease;
+        }
+
+        .nav-link {
+            display: flex; flex-direction: column; align-items: center;
+            text-decoration: none; color: var(--text-muted); font-size: 0.75rem; gap: 4px;
+        }
+
+        .nav-link.active { color: var(--primary); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <button class="theme-toggle" id="theme-btn">
+        <i class="bi bi-moon-stars-fill" id="theme-icon"></i>
+    </button>
+
+    <div id="splash-screen">
+        <img src="C:\Users\CBTIS 106\Desktop\Nueva carpeta (10)\155a4c37-5a91-4ec8-9a18-f3f6373fd043_inspyrenet.png" alt="Logo SeñIA">
+    </div>
+
+    <div id="main-content">
+        <header class="page-header">
+            <h1>SeñIA</h1>
+            <p>¿Qué quieres aprender hoy, amigazo?</p>
+        </header>
+
+        <main>
+            <section class="hero-card">
+                <h2>Intérprete IA</h2>
+                <p>Traduce lengua de señas en tiempo real usando tu cámara.</p>
+                <button id="btn-iniciar-senas" class="hero-btn">
+                    <i class="bi bi-camera-video-fill"></i> Abrir Cámara
+                </button>
+                <span id="texto-resultado" style="margin-left: 10px; font-weight: bold; color: var(--primary);"></span>
+            </section>
+
+            <section class="grid-lecciones">
+                <a href="componentes/alfabeto/alfabeto.html" class="leccion-card">
+                    <div class="leccion-icon"><i class="bi bi-fonts"></i></div>
+                    <h3>Abecedario</h3>
+                    <p>Letra por letra</p>
+                </a>
+                <a href="componentes/numeros/numeros.html" class="leccion-card">
+                    <div class="leccion-icon"><i class="bi bi-123"></i></div>
+                    <h3>Números</h3>
+                    <p>Aprende a contar</p>
+                </a>
+                <a href="componentes/colores/colores.html" class="leccion-card">
+                    <div class="leccion-icon"><i class="bi bi-palette-fill"></i></div>
+                    <h3>Colores</h3>
+                    <p>Descubre matices</p>
+                </a>
+                <a href="componentes/diccionario/diccionario.html" class="leccion-card">
+                    <div class="leccion-icon"><i class="bi bi-book-half"></i></div>
+                    <h3>Diccionario</h3>
+                    <p>Palabras clave</p>
+                </a>
+            </section>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-link">
+                <i class="bi bi-house-door-fill" style="font-size: 1.5rem;"></i>
+                <span>Inicio</span>
+            </a>
+            <a href="caracteristicas.html" class="nav-link active">
+                <i class="bi bi-grid-fill" style="font-size: 1.5rem;"></i>
+                <span>Aprender</span>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        // 1. LÓGICA DE LA PANTALLA DE CARGA
+        document.addEventListener("DOMContentLoaded", () => {
+            const splashScreen = document.getElementById("splash-screen");
+            const mainContent = document.getElementById("main-content");
+
+            setTimeout(() => {
+                splashScreen.classList.add("splash-hidden");
+                mainContent.classList.add("visible");
+            }, 2000);
+        });
+
+        // 2. LÓGICA DEL MODO CLARO / OSCURO
+        const themeBtn = document.getElementById('theme-btn');
+        const themeIcon = document.getElementById('theme-icon');
+        const body = document.body;
+
+        themeBtn.addEventListener('click', () => {
+            // Si tiene el atributo "light", lo quitamos para volver a oscuro
+            if (body.getAttribute('data-theme') === 'light') {
+                body.removeAttribute('data-theme');
+                themeIcon.classList.replace('bi-sun-fill', 'bi-moon-stars-fill');
+            } else {
+                // Si no lo tiene, lo ponemos
+                body.setAttribute('data-theme', 'light');
+                themeIcon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
+            }
+        });
+
+        // 3. LÓGICA DEL BOTÓN DE CÁMARA (Simulación)
+        const btnIniciar = document.getElementById('btn-iniciar-senas');
+        btnIniciar.addEventListener('click', () => {
+            document.getElementById('texto-resultado').innerText = "Encendiendo cámara...";
+            // Aquí iría tu integración futura de IA
+        });
+    </script>
+</body>
+</html>
