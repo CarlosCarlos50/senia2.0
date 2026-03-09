@@ -1,0 +1,318 @@
+/* =========================================
+   SIGNEALO - ESTILOS GLOBALES
+   Optimizado para Competencia
+   ========================================= */
+
+:root {
+    /* Paleta de Colores Moderna */
+    --primary-color: #6a11cb;
+    --secondary-color: #2575fc;
+    --accent-color: #ff4081;
+    --background-color: #f4f6f9;
+    --surface-color: #ffffff;
+    --text-color: #1f2937;
+    --text-light: #6b7280;
+    --success-color: #10b981;
+    --error-color: #ef4444;
+
+    /* Variables de Diseño */
+    --border-radius: 20px;
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- Configuración Base --- */
+body {
+    margin: 0;
+    padding-bottom: 80px; /* Espacio para el menú inferior */
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    -webkit-tap-highlight-color: transparent; /* Elimina flash azul en móviles */
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* --- Pantalla de Carga (Splash Screen) --- */
+#splash-screen {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--secondary-color)
+    );
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition:
+        opacity 0.5s ease,
+        visibility 0.5s;
+}
+#splash-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.splash-content svg {
+    width: 100px;
+    height: 100px;
+    fill: white;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(0.95);
+    }
+}
+
+/* --- Encabezados --- */
+.hero-header {
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        var(--secondary-color)
+    );
+    color: white;
+    padding: 50px 20px 30px;
+    border-radius: 0 0 30px 30px;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    margin-bottom: 25px;
+}
+.hero-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+.hero-header p {
+    opacity: 0.9;
+    margin-top: 8px;
+    font-size: 1rem;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: var(--surface-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+}
+.page-header h1 {
+    flex-grow: 1;
+    text-align: center;
+    margin: 0;
+    font-size: 1.25rem;
+    margin-right: 40px;
+}
+.back-btn {
+    padding: 10px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    display: flex;
+    transition: var(--transition);
+}
+.back-btn:hover {
+    background: #e5e7eb;
+}
+
+/* --- Contenedores y Tarjetas --- */
+.container {
+    padding: 0 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.card {
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+}
+.card:active {
+    transform: scale(0.97);
+}
+.card-icon {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 10px;
+    background: rgba(106, 17, 203, 0.1);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+}
+.card h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+.card p {
+    margin: 5px 0 0;
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+/* --- Buscador --- */
+.search-wrapper {
+    position: relative;
+    margin-bottom: 25px;
+}
+.search-bar {
+    background: var(--surface-color);
+    padding: 12px 20px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+}
+.search-bar input {
+    border: none;
+    width: 100%;
+    outline: none;
+    margin-left: 10px;
+    font-size: 1rem;
+}
+.results-dropdown {
+    position: absolute;
+    top: 110%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 15px;
+    box-shadow: var(--shadow-lg);
+    z-index: 50;
+    overflow: hidden;
+    display: none;
+}
+.results-dropdown.active {
+    display: block;
+}
+.search-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+}
+.search-item:hover {
+    background: #f9fafb;
+}
+
+/* --- Navegación Inferior --- */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface-color);
+    height: 70px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
+    z-index: 500;
+}
+.nav-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text-light);
+    font-size: 0.75rem;
+    gap: 4px;
+}
+.nav-link.active {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+.nav-link svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+}
+
+/* --- Visor de Imágenes (Usado en componentes) --- */
+.viewer-box {
+    height: 300px;
+    background: white;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 2px solid #f3f4f6;
+    overflow: hidden;
+}
+.viewer-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    animation: fadeOn 0.3s;
+}
+@keyframes fadeOn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* --- Teclados / Grillas --- */
+.keyboard-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+.key-btn {
+    width: 50px;
+    height: 50px;
+    border: none;
+    background: white;
+    border-radius: 12px;
+    font-weight: bold;
+    color: var(--text-color);
+    box-shadow: 0 2px 0 #e5e7eb;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.key-btn:active,
+.key-btn.active {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(2px);
+    box-shadow: none;
+}

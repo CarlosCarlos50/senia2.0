@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeñIA - Traductor en Vivo</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+
+    <style>
+        /* 1. VARIABLES DE COLOR (MODO OSCURO POR DEFECTO) */
+        :root {
+            --bg-color: #0b2926;
+            --primary: #2de0d4;
+            --primary-glow: rgba(45, 224, 212, 0.4);
+            --text-main: #ffffff;
+            --text-muted: #8abeb9;
+            --card-bg: #113b37;
+            --transition-speed: 0.4s;
+        }
+
+        /* 2. VARIABLES PARA MODO CLARO */
+        [data-theme="light"] {
+            --bg-color: #f0f4f4;
+            --primary: #1a9e95;
+            --primary-glow: rgba(26, 158, 149, 0.2);
+            --text-main: #1a2e2c;
+            --text-muted: #5a7a76;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            color: var(--text-main);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        /* 3. BOTÓN DE TEMA FIJO */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 9999;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        /* 4. CONTENEDOR PRINCIPAL */
+        #main-wrapper {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            flex: 1;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #main-wrapper.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .page-header {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 10px 0 20px 0;
+            border-bottom: 1px solid var(--primary-glow);
+            margin-bottom: 20px;
+        }
+
+        .back-btn {
+            color: var(--primary);
+            font-size: 1.5rem;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        /* 5. ÁREA DE RESULTADO */
+        #resultado {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 15px 30px;
+            border-radius: 20px;
+            background: var(--card-bg);
+            color: var(--primary);
+            min-height: 50px;
+            text-align: center;
+            border: 2px solid var(--primary-glow);
+            box-shadow: 0 0 20px var(--primary-glow);
+            width: 100%;
+            max-width: 500px;
+            transition: all 0.3s ease;
+        }
+
+        /* 6. CONTENEDOR DE VIDEO ESTILO CÁMARA IA */
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            aspect-ratio: 4 / 3;
+            background: #000;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 4px solid var(--card-bg);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Marco decorativo de escaneo */
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+            animation: scanning 3s infinite linear;
+            z-index: 10;
+            opacity: 0.5;
+        }
+
+        @keyframes scanning {
+            0% { top: 0; }
+            50% { top: 100%; }
+            100% { top: 0; }
+        }
+
+        .instrucciones {
+            margin-top: 20px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            text-align: center;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+
+    <button class="theme-toggle" id="theme-btn">
+        <i class="bi bi-moon-stars-fill" id="theme-icon"></i>
+    </button>
+
+    <div id="main-wrapper">
+        <header class="page-header">
+            <a href="index.html" class="back-btn">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h1>SeñIA Traductor</h1>
+        </header>
+
+        <div id="resultado">Haz clic para iniciar cámara</div>
+
+        <div class="video-container">
+            <div class="scan-line"></div>
+            <video class="input_video"></video>
+        </div>
+
+        <p class="instrucciones">
+            <i class="bi bi-info-circle"></i> 
+            Asegúrate de que haya buena iluminación y que tu mano sea visible en el recuadro.
+        </p>
+    </div>
+
+    
+
+    <script>
+        const themeBtn = document.getElementById('theme-btn');
+        const themeIcon = document.getElementById('theme-icon');
+        const body = document.body;
+        const videoElement = document.querySelector('.input_video');
+        const textoResultado = document.getElementById('resultado');
+        let misLetras = [];
+
+        // 1. GESTIÓN DEL MODO OSCURO (PERSISTENCIA)
+        if (localStorage.getItem('theme') === 'light') {
+            body.setAttribute('data-theme', 'light');
+            themeIcon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
+        }
+
+        themeBtn.addEventListener('click', () => {
+            if (body.getAttribute('data-theme') === 'light') {
+                body.removeAttribute('data-theme');
+                themeIcon.classList.replace('bi-sun-fill', 'bi-moon-stars-fill');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.setAttribute('data-theme', 'light');
+                themeIcon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // 2. ANIMACIÓN DE ENTRADA
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeout(() => {
+                document.getElementById("main-wrapper").classList.add("visible");
+            }, 50);
+        });
+
+        // 3. LÓGICA DE TRADUCCIÓN IA
+        async function iniciar() {
+            try {
+                textoResultado.innerText = "Cargando IA...";
+
+                const res = await fetch('./labels.json');
+                misLetras = await res.json();
+
+                const hands = new Hands({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+                });
+
+                hands.setOptions({
+                    maxNumHands: 1,
+                    modelComplexity: 0, 
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+
+                hands.onResults(async (results) => {
+                    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                        const landmarks = results.multiHandLandmarks[0];
+                        const puntosIA = [];
+                        
+                        landmarks.forEach(p => {
+                            puntosIA.push(p.x, p.y, p.z);
+                        });
+
+                        try {
+                            const response = await fetch('http://localhost:8000/predecir', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ puntos: puntosIA })
+                            });
+                            const data = await response.json();
+                            
+                            const letraFinal = misLetras[data.indice] || "Desconocido";
+                            textoResultado.innerText = "Seña: " + letraFinal;
+                            textoResultado.style.boxShadow = "0 0 30px var(--primary)";
+                        } catch (error) {
+                            textoResultado.innerText = "Error: API Apagada";
+                            textoResultado.style.color = "#ef4444";
+                        }
+                    } else {
+                        textoResultado.innerText = "Esperando mano...";
+                        textoResultado.style.boxShadow = "none";
+                    }
+                });
+
+                const camera = new Camera(videoElement, {
+                    onFrame: async () => {
+                        await hands.send({ image: videoElement });
+                    },
+                    width: 640,
+                    height: 480
+                });
+
+                await camera.start();
+                textoResultado.innerText = "¡Listo! Empieza a signar";
+
+            } catch (err) {
+                console.error(err);
+                textoResultado.innerText = "Error de cámara";
+            }
+        }
+
+        document.body.addEventListener('click', () => {
+            iniciar();
+        }, { once: true });
+    </script>
+</body>
+</html>
