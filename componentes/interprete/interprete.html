@@ -3,311 +3,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeñIA - Traductor en Vivo</title>
-
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
-
+    <title>SeñIA - Traductor de Lengua de Señas</title>
+    
+    <!-- MediaPipe desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    
     <style>
-        /* 1. VARIABLES DE COLOR (MODO OSCURO POR DEFECTO) */
-        :root {
-            --bg-color: #0b2926;
-            --primary: #2de0d4;
-            --primary-glow: rgba(45, 224, 212, 0.4);
-            --text-main: #ffffff;
-            --text-muted: #8abeb9;
-            --card-bg: #113b37;
-            --transition-speed: 0.4s;
-        }
-
-        /* 2. VARIABLES PARA MODO CLARO */
-        [data-theme="light"] {
-            --bg-color: #f0f4f4;
-            --primary: #1a9e95;
-            --primary-glow: rgba(26, 158, 149, 0.2);
-            --text-main: #1a2e2c;
-            --text-muted: #5a7a76;
-            --card-bg: #ffffff;
-        }
-
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg-color);
+            font-family: 'Segoe UI', sans-serif;
+            background: #121212;
+            color: white;
             margin: 0;
-            color: var(--text-main);
-            overflow-x: hidden;
+            padding: 20px;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-            transition: background-color var(--transition-speed), color var(--transition-speed);
-        }
-
-        /* 3. BOTÓN DE TEMA FIJO */
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--card-bg);
-            color: var(--primary);
-            border: 2px solid var(--primary);
-            width: 50px;
-            height: 50px;
-            border-radius: 15px;
-            display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 9999;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-
-        .theme-toggle:hover {
-            transform: scale(1.1) rotate(10deg);
-            box-shadow: 0 0 20px var(--primary-glow);
-        }
-
-        /* 4. CONTENEDOR PRINCIPAL */
-        #main-wrapper {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-            flex: 1;
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        #main-wrapper.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .page-header {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            padding: 10px 0 20px 0;
-            border-bottom: 1px solid var(--primary-glow);
+        
+        h1 {
+            color: #00e676;
             margin-bottom: 20px;
-        }
-
-        .back-btn {
-            color: var(--primary);
-            font-size: 1.5rem;
-            text-decoration: none;
-            margin-right: 15px;
-        }
-
-        .page-header h1 {
-            margin: 0;
-            font-size: 1.5rem;
-            color: var(--primary);
-        }
-
-        /* 5. ÁREA DE RESULTADO */
-        #resultado {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            padding: 15px 30px;
-            border-radius: 20px;
-            background: var(--card-bg);
-            color: var(--primary);
-            min-height: 50px;
             text-align: center;
-            border: 2px solid var(--primary-glow);
-            box-shadow: 0 0 20px var(--primary-glow);
-            width: 100%;
-            max-width: 500px;
-            transition: all 0.3s ease;
         }
-
-        /* 6. CONTENEDOR DE VIDEO ESTILO CÁMARA IA */
+        
+        #resultado {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 20px;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #00e676;
+            border-radius: 10px;
+            min-height: 80px;
+            text-align: center;
+            border: 3px solid #333;
+            min-width: 200px;
+        }
+        
         .video-container {
             position: relative;
             width: 100%;
             max-width: 640px;
-            aspect-ratio: 4 / 3;
+            height: 480px;
             background: #000;
-            border-radius: 25px;
+            border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            border: 4px solid var(--card-bg);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 3px solid #333;
+            margin: 0 auto;
         }
-
+        
         video {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transform: scaleX(-1);
         }
-
-        /* Marco decorativo de escaneo */
-        .scan-line {
+        
+        .output_canvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 2px;
-            background: var(--primary);
-            box-shadow: 0 0 15px var(--primary);
-            animation: scanning 3s infinite linear;
-            z-index: 10;
-            opacity: 0.5;
+            height: 100%;
+            pointer-events: none;
+            display: none;
         }
-
-        @keyframes scanning {
-            0% { top: 0; }
-            50% { top: 100%; }
-            100% { top: 0; }
-        }
-
+        
         .instrucciones {
             margin-top: 20px;
-            color: var(--text-muted);
-            font-size: 0.95rem;
+            color: #aaa;
             text-align: center;
-            max-width: 400px;
+            max-width: 640px;
+        }
+
+        .controles {
+            margin: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            background: #333;
+            color: white;
+            border: 2px solid #00e676;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Segoe UI', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #00e676;
+            color: #121212;
+        }
+        
+        @media (max-width: 768px) {
+            .video-container { height: 360px; }
+            #resultado { font-size: 2.5rem; padding: 15px; }
+            .btn { padding: 8px 16px; font-size: 0.9rem; }
         }
     </style>
 </head>
 <body>
 
-    <button class="theme-toggle" id="theme-btn">
-        <i class="bi bi-moon-stars-fill" id="theme-icon"></i>
-    </button>
+    <h1>SeñIA Traductor de Lengua de Señas</h1>
+    <div class="controles">
+        <button id="togglePuntos" class="btn">🔘 Mostrar Puntos</button>
+        <button id="toggleCamara" class="btn">📷 Cambiar Cámara</button>
+    </div>
+    
+    <div id="resultado">HAZ CLIC PARA INICIAR</div>
 
-    <div id="main-wrapper">
-        <header class="page-header">
-            <a href="index.html" class="back-btn">
-                <i class="bi bi-arrow-left"></i>
-            </a>
-            <h1>SeñIA Traductor</h1>
-        </header>
-
-        <div id="resultado">Haz clic para iniciar cámara</div>
-
-        <div class="video-container">
-            <div class="scan-line"></div>
-            <video class="input_video"></video>
-        </div>
-
-        <p class="instrucciones">
-            <i class="bi bi-info-circle"></i> 
-            Asegúrate de que haya buena iluminación y que tu mano sea visible en el recuadro.
-        </p>
+    <div class="video-container">
+        <video class="input_video"></video>
+        <canvas class="output_canvas"></canvas>
     </div>
 
-    
+    <p class="instrucciones">
+        • Haz clic en cualquier lugar para activar la cámara<br>
+        • Muestra tu mano a la cámara<br>
+        • Asegúrate de tener buena iluminación<br>
+        • Funciona mejor en Chrome/Edge
+    </p>
 
     <script>
-        const themeBtn = document.getElementById('theme-btn');
-        const themeIcon = document.getElementById('theme-icon');
-        const body = document.body;
+        // 🔧 CONFIGURACIÓN
+        const API_URL = "https://senia-api.onrender.com/predecir";
+        
+        // Elementos DOM
         const videoElement = document.querySelector('.input_video');
-        const textoResultado = document.getElementById('resultado');
-        let misLetras = [];
-
-        // 1. GESTIÓN DEL MODO OSCURO (PERSISTENCIA)
-        if (localStorage.getItem('theme') === 'light') {
-            body.setAttribute('data-theme', 'light');
-            themeIcon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
+        const canvasElement = document.querySelector('.output_canvas');
+        const resultadoDiv = document.getElementById('resultado');
+        const ctx = canvasElement.getContext('2d');
+        
+        // Etiquetas para las 21 letras
+        const letras = ["A", "B", "C", "D", "E", "F", "G", "H", "I", 
+                       "L", "M", "N", "O", "P", "R", "S", "T", 
+                       "U", "V", "W", "Y"];
+        
+        // Variables de estado
+        let mostrarPuntos = false;
+        let camaraFrontal = true;
+        let cameraInstance = null;
+        let handsInstance = null;
+        let sistemaIniciado = false;
+        
+        // Configurar canvas
+        canvasElement.width = 640;
+        canvasElement.height = 480;
+        
+        // Conexiones de la mano para dibujar
+        const CONEXIONES_MANO = [
+            [0,1],[1,2],[2,3],[3,4],        // Pulgar
+            [0,5],[5,6],[6,7],[7,8],        // Índice
+            [0,9],[9,10],[10,11],[11,12],   // Medio
+            [0,13],[13,14],[14,15],[15,16], // Anular
+            [0,17],[17,18],[18,19],[19,20]  // Meñique
+        ];
+        
+        // ==================== FUNCIONES DE DIBUJO ====================
+        
+        function dibujarLandmarks(landmarks) {
+            if (!landmarks || landmarks.length === 0) return;
+            
+            ctx.strokeStyle = '#00FF00';
+            ctx.fillStyle = '#FF0000';
+            ctx.lineWidth = 2;
+            
+            // Dibujar conexiones
+            CONEXIONES_MANO.forEach(([inicio, fin]) => {
+                const puntoInicio = landmarks[inicio];
+                const puntoFin = landmarks[fin];
+                
+                ctx.beginPath();
+                ctx.moveTo(puntoInicio.x * canvasElement.width, 
+                          puntoInicio.y * canvasElement.height);
+                ctx.lineTo(puntoFin.x * canvasElement.width, 
+                          puntoFin.y * canvasElement.height);
+                ctx.stroke();
+            });
+            
+            // Dibujar puntos
+            landmarks.forEach(punto => {
+                ctx.beginPath();
+                ctx.arc(punto.x * canvasElement.width,
+                       punto.y * canvasElement.height,
+                       4, 0, 2 * Math.PI);
+                ctx.fill();
+            });
         }
-
-        themeBtn.addEventListener('click', () => {
-            if (body.getAttribute('data-theme') === 'light') {
-                body.removeAttribute('data-theme');
-                themeIcon.classList.replace('bi-sun-fill', 'bi-moon-stars-fill');
-                localStorage.setItem('theme', 'dark');
+        
+        function limpiarCanvas() {
+            ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        }
+        
+        // ==================== FUNCIONES DE CONTROL ====================
+        
+        function togglePuntos() {
+            mostrarPuntos = !mostrarPuntos;
+            const btn = document.getElementById('togglePuntos');
+            
+            if (mostrarPuntos) {
+                btn.textContent = '🔘 Ocultar Puntos';
+                btn.classList.add('active');
+                canvasElement.style.display = 'block';
             } else {
-                body.setAttribute('data-theme', 'light');
-                themeIcon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
-                localStorage.setItem('theme', 'light');
+                btn.textContent = '🔘 Mostrar Puntos';
+                btn.classList.remove('active');
+                canvasElement.style.display = 'none';
+                limpiarCanvas();
             }
-        });
-
-        // 2. ANIMACIÓN DE ENTRADA
-        document.addEventListener("DOMContentLoaded", () => {
-            setTimeout(() => {
-                document.getElementById("main-wrapper").classList.add("visible");
-            }, 50);
-        });
-
-        // 3. LÓGICA DE TRADUCCIÓN IA
-        async function iniciar() {
+        }
+        
+        async function cambiarCamara() {
+            if (!cameraInstance) return;
+            
             try {
-                textoResultado.innerText = "Cargando IA...";
-
-                const res = await fetch('./labels.json');
-                misLetras = await res.json();
-
-                const hands = new Hands({
-                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-                });
-
-                hands.setOptions({
-                    maxNumHands: 1,
-                    modelComplexity: 0, 
-                    minDetectionConfidence: 0.5,
-                    minTrackingConfidence: 0.5
-                });
-
-                hands.onResults(async (results) => {
-                    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                        const landmarks = results.multiHandLandmarks[0];
-                        const puntosIA = [];
-                        
-                        landmarks.forEach(p => {
-                            puntosIA.push(p.x, p.y, p.z);
-                        });
-
-                        try {
-                            const response = await fetch('http://localhost:8000/predecir', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ puntos: puntosIA })
-                            });
-                            const data = await response.json();
-                            
-                            const letraFinal = misLetras[data.indice] || "Desconocido";
-                            textoResultado.innerText = "Seña: " + letraFinal;
-                            textoResultado.style.boxShadow = "0 0 30px var(--primary)";
-                        } catch (error) {
-                            textoResultado.innerText = "Error: API Apagada";
-                            textoResultado.style.color = "#ef4444";
-                        }
-                    } else {
-                        textoResultado.innerText = "Esperando mano...";
-                        textoResultado.style.boxShadow = "none";
-                    }
-                });
-
-                const camera = new Camera(videoElement, {
+                await cameraInstance.stop();
+                camaraFrontal = !camaraFrontal;
+                
+                cameraInstance = new Camera(videoElement, {
                     onFrame: async () => {
-                        await hands.send({ image: videoElement });
+                        await handsInstance.send({ image: videoElement });
                     },
                     width: 640,
-                    height: 480
+                    height: 480,
+                    facingMode: camaraFrontal ? 'user' : 'environment'
                 });
-
-                await camera.start();
-                textoResultado.innerText = "¡Listo! Empieza a signar";
-
-            } catch (err) {
-                console.error(err);
-                textoResultado.innerText = "Error de cámara";
+                
+                await cameraInstance.start();
+                
+                const btn = document.getElementById('toggleCamara');
+                if (camaraFrontal) {
+                    btn.textContent = '📷 Cámara Trasera';
+                } else {
+                    btn.textContent = '📷 Cámara Frontal';
+                }
+                
+            } catch (error) {
+                console.error('Error cambiando cámara:', error);
+                alert('No se pudo cambiar la cámara: ' + error.message);
             }
         }
-
-        document.body.addEventListener('click', () => {
-            iniciar();
+        
+        // ==================== INICIALIZACIÓN PRINCIPAL ====================
+        
+        async function iniciarSistema() {
+            if (sistemaIniciado) return;
+            
+            try {
+                sistemaIniciado = true;
+                resultadoDiv.textContent = "Iniciando...";
+                
+                // 1. Configurar MediaPipe Hands
+                handsInstance = new Hands({
+                    locateFile: (file) => 
+                        `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+                });
+                
+                handsInstance.setOptions({
+                    maxNumHands: 1,
+                    modelComplexity: 0,
+                    minDetectionConfidence: 0.6,
+                    minTrackingConfidence: 0.6
+                });
+                
+                // 2. Procesar resultados
+                let ultimaPrediccion = '';
+                let ultimoTiempo = 0;
+                const intervaloMinimo = 400; // ms entre predicciones
+                
+                handsInstance.onResults((results) => {
+                    // Limpiar canvas
+                    ctx.save();
+                    ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                    
+                    // Dibujar video
+                    ctx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+                    
+                    const ahora = Date.now();
+                    
+                    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                        // Dibujar puntos si está activado
+                        if (mostrarPuntos) {
+                            dibujarLandmarks(results.multiHandLandmarks[0]);
+                        }
+                        
+                        // Evitar predicciones demasiado seguidas
+                        if (ahora - ultimoTiempo < intervaloMinimo) {
+                            ctx.restore();
+                            return;
+                        }
+                        
+                        const landmarks = results.multiHandLandmarks[0];
+                        const puntos = [];
+                        
+                        // Extraer 63 puntos
+                        landmarks.forEach(punto => {
+                            puntos.push(punto.x, punto.y, punto.z);
+                        });
+                        
+                        // Enviar a la API
+                        enviarPrediccion(puntos).then(data => {
+                            if (data.indice >= 0 && data.indice < letras.length) {
+                                const letra = letras[data.indice];
+                                if (letra !== ultimaPrediccion) {
+                                    resultadoDiv.textContent = letra;
+                                    ultimaPrediccion = letra;
+                                }
+                            }
+                            ultimoTiempo = ahora;
+                        }).catch(error => {
+                            console.error('Error:', error);
+                            resultadoDiv.textContent = "Error API";
+                        });
+                        
+                    } else {
+                        resultadoDiv.textContent = "✋ Muestra tu mano";
+                        ultimaPrediccion = '';
+                    }
+                    
+                    ctx.restore();
+                });
+                
+                // 3. Iniciar cámara
+                cameraInstance = new Camera(videoElement, {
+                    onFrame: async () => {
+                        await handsInstance.send({ image: videoElement });
+                    },
+                    width: 640,
+                    height: 480,
+                    facingMode: 'user'
+                });
+                
+                await cameraInstance.start();
+                resultadoDiv.textContent = "✅ ¡Listo! Muestra tu mano";
+                
+                // 4. Configurar botones
+                document.getElementById('togglePuntos').addEventListener('click', togglePuntos);
+                document.getElementById('toggleCamara').addEventListener('click', cambiarCamara);
+                
+                console.log('✅ Sistema iniciado correctamente');
+                console.log('🔤 Letras disponibles:', letras);
+                
+            } catch (error) {
+                console.error('Error crítico:', error);
+                resultadoDiv.textContent = "❌ Error al iniciar";
+                sistemaIniciado = false;
+                
+                if (error.name === 'NotAllowedError') {
+                    alert("Permiso de cámara denegado. Por favor, recarga y permite acceso.");
+                } else if (error.name === 'NotFoundError') {
+                    alert("No se encontró cámara. Conecta una cámara o verifica permisos.");
+                } else {
+                    alert("Error: " + error.message);
+                }
+            }
+        }
+        
+        async function enviarPrediccion(puntos) {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ puntos: puntos })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Error API: ${response.status}`);
+            }
+            
+            return await response.json();
+        }
+        
+        // ==================== EVENTOS ====================
+        
+        // Iniciar al hacer clic
+        document.addEventListener('click', () => {
+            if (!sistemaIniciado) {
+                iniciarSistema();
+            }
         }, { once: true });
+        
+        // También iniciar con tecla Espacio
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !sistemaIniciado) {
+                iniciarSistema();
+            }
+        });
+        
     </script>
 </body>
 </html>
