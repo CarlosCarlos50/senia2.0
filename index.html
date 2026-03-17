@@ -251,12 +251,9 @@
             }
         });
 
-        // 3. LÓGICA DEL BOTÓN DE CÁMARA (Simulación)
-        const btnIniciar = document.getElementById('btn-iniciar-senas');
-        btnIniciar.addEventListener('click', () => {
-            document.getElementById('texto-resultado').innerText = "Encendiendo cámara...";
-            // Aquí iría tu integración futura de IA
-        });
+      document.getElementById('btn-iniciar-senas').addEventListener('click', function() {
+        window.location.href = 'componentes/interprete/interprete.html';
+    });
     </script>
 </body>
 </html>
