@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeñIA - Traductor de Lengua de Señas</title>
+    <title>SeñIA - Intérprete Avanzado</title>
     
+    <!-- Librerías MediaPipe -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    
+    <!-- Bootstrap Icons (para íconos bonitos) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
     
     <style>
-        /* 1. VARIABLES DE COLOR (DEL SCRIPT 1) */
+        /* ========== VARIABLES Y TEMA (del Script 2) ========== */
         :root {
             --bg-color: #0b2926;
             --primary: #2de0d4;
@@ -42,7 +45,7 @@
             transition: background-color var(--transition-speed), color var(--transition-speed);
         }
 
-        /* 2. BOTÓN DE TEMA */
+        /* Botón de cambio de tema (flotante) */
         .theme-toggle {
             position: fixed;
             top: 20px;
@@ -67,7 +70,7 @@
             box-shadow: 0 0 20px var(--primary-glow);
         }
 
-        /* 3. CONTENEDOR PRINCIPAL Y ANIMACIONES */
+        /* Contenedor principal con animación de entrada */
         #main-wrapper {
             opacity: 0;
             transform: translateY(30px);
@@ -88,6 +91,7 @@
             transform: translateY(0);
         }
 
+        /* Encabezado */
         .page-header {
             width: 100%;
             display: flex;
@@ -105,11 +109,44 @@
             text-align: center;
         }
 
-        /* 4. ÁREA DE RESULTADO */
+        /* ========== ÁREAS DE TEXTO (palabra y frase) ========== */
+        .texto-panel {
+            width: 100%;
+            max-width: 600px;
+            margin: 10px 0;
+        }
+
+        .palabra-container, .frase-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin: 10px 0;
+            border: 2px solid var(--primary-glow);
+            box-shadow: 0 0 15px var(--primary-glow);
+            transition: all 0.3s ease;
+        }
+
+        .palabra-container h3, .frase-container h3 {
+            margin: 0 0 5px 0;
+            color: var(--primary);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #palabra, #frase {
+            font-size: 1.5rem;
+            word-break: break-word;
+            min-height: 2rem;
+            color: var(--text-main);
+        }
+
+        /* ========== ÁREA DE RESULTADO (letra grande) ========== */
         #resultado {
             font-size: 2rem;
             font-weight: bold;
-            margin-bottom: 20px;
+            margin: 20px 0;
             padding: 15px 30px;
             border-radius: 20px;
             background: var(--card-bg);
@@ -123,7 +160,7 @@
             transition: all 0.3s ease;
         }
 
-        /* 5. CONTENEDOR DE VIDEO */
+        /* ========== CONTENEDOR DE VIDEO ========== */
         .video-container {
             position: relative;
             width: 100%;
@@ -134,6 +171,7 @@
             overflow: hidden;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             border: 4px solid var(--card-bg);
+            margin: 20px 0;
         }
 
         video {
@@ -174,9 +212,9 @@
             100% { top: 0; }
         }
 
-        /* 6. CONTROLES Y BOTONES */
+        /* ========== BOTONES DE CONTROL ========== */
         .controles {
-            margin: 20px;
+            margin: 15px;
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
@@ -203,6 +241,18 @@
             box-shadow: 0 0 15px var(--primary-glow);
         }
 
+        #activarVoz {
+            background: #0055aa;
+            border-color: #ffffff;
+            color: white;
+        }
+
+        #activarVoz:hover {
+            background: #0066cc;
+            box-shadow: 0 0 15px #00aaff;
+        }
+
+        /* ========== INSTRUCCIONES ========== */
         .instrucciones {
             margin-top: 20px;
             color: var(--text-muted);
@@ -211,46 +261,76 @@
             max-width: 450px;
             line-height: 1.6;
         }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            #resultado { font-size: 1.8rem; padding: 12px; }
+            .btn { padding: 8px 16px; font-size: 0.9rem; }
+            .palabra-container, .frase-container { padding: 10px 15px; }
+            #palabra, #frase { font-size: 1.2rem; }
+        }
     </style>
 </head>
 <body>
 
+    <!-- Botón de tema flotante -->
     <button class="theme-toggle" id="theme-btn">
         <i class="bi bi-moon-stars-fill" id="theme-icon"></i>
     </button>
 
+    <!-- Contenedor principal con animación -->
     <div id="main-wrapper">
         <header class="page-header">
-            <h1>SeñIA Traductor</h1>
+            <h1>SeñIA Intérprete Avanzado</h1>
         </header>
 
+        <!-- Botones de control (puntos, cámara, voz) -->
         <div class="controles">
             <button id="togglePuntos" class="btn"><i class="bi bi-dot"></i> Mostrar Puntos</button>
             <button id="toggleCamara" class="btn"><i class="bi bi-camera-video"></i> Cambiar Cámara</button>
+            <button id="activarVoz" class="btn"><i class="bi bi-mic"></i> Activar Voz</button>
         </div>
-        
+
+        <!-- Panel de resultados -->
         <div id="resultado">HAZ CLIC PARA INICIAR</div>
 
+        <!-- Áreas de palabra y frase (incorporadas del Script 1) -->
+        <div class="texto-panel">
+            <div class="palabra-container">
+                <h3><i class="bi bi-type"></i> Palabra actual:</h3>
+                <div id="palabra"></div>
+            </div>
+            <div class="frase-container">
+                <h3><i class="bi bi-chat-dots"></i> Frase:</h3>
+                <div id="frase"></div>
+            </div>
+        </div>
+
+        <!-- Contenedor de video con línea de escaneo -->
         <div class="video-container">
             <div class="scan-line"></div>
             <video class="input_video"></video>
             <canvas class="output_canvas"></canvas>
         </div>
 
+        <!-- Instrucciones -->
         <div class="instrucciones">
             <i class="bi bi-info-circle"></i><br>
-            • Haz clic para activar la cámara<br>
-            • Asegúrate de que haya buena iluminación<br>
-            • Mantén tu mano dentro del recuadro
+            • Haz clic en cualquier lugar para activar la cámara<br>
+            • Muestra tu mano para formar letras<br>
+            • Una pausa corta (1.5s) separa palabras<br>
+            • Una pausa larga (4s) envía la frase a corregir y a voz<br>
+            • Usa "Activar Voz" para habilitar el audio (necesario en móviles)
         </div>
     </div>
 
     <script>
-        // ==================== LÓGICA DE TEMA (MODO OSCURO) ====================
+        // ==================== LÓGICA DE TEMA (del Script 2) ====================
         const themeBtn = document.getElementById('theme-btn');
         const themeIcon = document.getElementById('theme-icon');
         const body = document.body;
 
+        // Cargar tema guardado
         if (localStorage.getItem('theme') === 'light') {
             body.setAttribute('data-theme', 'light');
             themeIcon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
@@ -275,29 +355,58 @@
             }, 50);
         });
 
-        // ==================== LÓGICA FUNCIONAL (SIN CAMBIOS) ====================
-        const API_URL = "https://senia-api.onrender.com/predecir";
+        // ==================== FUNCIONALIDAD COMPLETA DEL SCRIPT 1 ====================
+        // (Todo lo que sigue es la lógica original del Script 1, ligeramente adaptada para convivir con el nuevo diseño)
+
+        // CONFIGURACIÓN
+        const CONFIG = {
+            detectarEspacioPorDesaparicion: true,
+            TIEMPO_SILENCIO: 1500,
+            TIEMPO_FRASE: 4000,
+            API_URL: "https://senia-api.onrender.com/predecir"
+        };
+
+        // Variables de estado
+        let palabraActual = "";
+        let fraseActual = "";
+        let ultimaLetra = "";
+        let ultimoTiempo = Date.now();
+        let manoVisible = false;
+        let vozActivada = false;
+
+        // Elementos DOM
         const videoElement = document.querySelector('.input_video');
         const canvasElement = document.querySelector('.output_canvas');
         const resultadoDiv = document.getElementById('resultado');
+        const palabraDiv = document.getElementById('palabra');
+        const fraseDiv = document.getElementById('frase');
         const ctx = canvasElement.getContext('2d');
-        
-        const letras = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "L", "M", "N", "O", "P", "R", "S", "T", "U", "V", "W", "Y"];
-        
+
+        // Etiquetas de letras
+        const letras = ["A", "B", "C", "D", "E", "F", "G", "H", "I", 
+                        "L", "M", "N", "O", "P", "R", "S", "T", 
+                        "U", "V", "W", "Y"];
+
+        // Variables de control MediaPipe
         let mostrarPuntos = false;
         let camaraFrontal = true;
         let cameraInstance = null;
         let handsInstance = null;
         let sistemaIniciado = false;
-        
+
         canvasElement.width = 640;
         canvasElement.height = 480;
-        
-        const CONEXIONES_MANO = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[0,9],[9,10],[10,11],[11,12],[0,13],[13,14],[14,15],[15,16],[0,17],[17,18],[18,19],[19,20]];
-        
+
+        const CONEXIONES_MANO = [
+            [0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],
+            [0,9],[9,10],[10,11],[11,12],[0,13],[13,14],[14,15],[15,16],
+            [0,17],[17,18],[18,19],[19,20]
+        ];
+
+        // Funciones de dibujo
         function dibujarLandmarks(landmarks) {
             if (!landmarks || landmarks.length === 0) return;
-            ctx.strokeStyle = '#2de0d4'; // Color primario
+            ctx.strokeStyle = '#2de0d4';
             ctx.fillStyle = '#ffffff';
             ctx.lineWidth = 3;
             CONEXIONES_MANO.forEach(([inicio, fin]) => {
@@ -314,11 +423,12 @@
                 ctx.fill();
             });
         }
-        
+
         function limpiarCanvas() {
             ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
         }
-        
+
+        // Controles de puntos y cámara
         function togglePuntos() {
             mostrarPuntos = !mostrarPuntos;
             const btn = document.getElementById('togglePuntos');
@@ -331,7 +441,7 @@
                 limpiarCanvas();
             }
         }
-        
+
         async function cambiarCamara() {
             if (!cameraInstance) return;
             try {
@@ -343,96 +453,236 @@
                     facingMode: camaraFrontal ? 'user' : 'environment'
                 });
                 await cameraInstance.start();
-                document.getElementById('toggleCamara').innerHTML = camaraFrontal ? '<i class="bi bi-camera-video"></i> Cámara Trasera' : '<i class="bi bi-camera-video"></i> Cámara Frontal';
+                document.getElementById('toggleCamara').innerHTML = camaraFrontal ? 
+                    '<i class="bi bi-camera-video"></i> Cámara Trasera' : 
+                    '<i class="bi bi-camera-video"></i> Cámara Frontal';
             } catch (error) {
                 console.error('Error cambiando cámara:', error);
+                alert('No se pudo cambiar la cámara: ' + error.message);
             }
         }
-        
+
+        // Sistema de voz
+        function hablar(texto) {
+            if (!vozActivada) return;
+            speechSynthesis.cancel();
+            const mensaje = new SpeechSynthesisUtterance(texto);
+            const voces = speechSynthesis.getVoices();
+            const voz = voces.find(v => v.lang.includes('es'));
+            if (voz) mensaje.voice = voz;
+            mensaje.lang = 'es-MX';
+            mensaje.rate = 0.9;
+            mensaje.pitch = 1;
+            speechSynthesis.speak(mensaje);
+        }
+
+        // Corrección ortográfica
+        async function corregir(texto) {
+            const params = new URLSearchParams();
+            params.append("text", texto);
+            params.append("language", "es");
+            try {
+                const res = await fetch("https://api.languagetool.org/v2/check", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: params
+                });
+                const data = await res.json();
+                let textoCorregido = texto;
+                data.matches.forEach(match => {
+                    if (match.replacements.length > 0) {
+                        const original = match.context.text.substr(match.context.offset, match.context.length);
+                        const sugerencia = match.replacements[0].value;
+                        textoCorregido = textoCorregido.replace(original, sugerencia);
+                    }
+                });
+                return textoCorregido;
+            } catch (e) {
+                console.error("Error en corrección:", e);
+                return texto;
+            }
+        }
+
+        // Procesar frase
+        async function procesarFrase(frase) {
+            console.log("Procesando frase:", frase);
+            const fraseCorregida = await corregir(frase);
+            fraseDiv.innerText = fraseCorregida;
+            hablar(fraseCorregida);
+        }
+
+        // Procesar predicción de letra
+        function procesarPrediccion(letra) {
+            const ahora = Date.now();
+            if (letra !== ultimaLetra) {
+                palabraActual += letra;
+                ultimaLetra = letra;
+                ultimoTiempo = ahora;
+                palabraDiv.innerText = palabraActual;
+                resultadoDiv.innerText = letra;
+                // Efecto de destello al recibir letra
+                resultadoDiv.style.boxShadow = "0 0 30px var(--primary)";
+                setTimeout(() => {
+                    resultadoDiv.style.boxShadow = "0 0 20px var(--primary-glow)";
+                }, 200);
+            }
+        }
+
+        function terminarPalabra() {
+            if (palabraActual.length > 0) {
+                fraseActual += palabraActual + " ";
+                palabraActual = "";
+                ultimaLetra = "";
+                palabraDiv.innerText = "";
+                fraseDiv.innerText = fraseActual;
+            }
+        }
+
+        // Detección de pausas
+        setInterval(() => {
+            const ahora = Date.now();
+            if (palabraActual.length > 0 && ahora - ultimoTiempo > CONFIG.TIEMPO_SILENCIO) {
+                terminarPalabra();
+            }
+        }, 500);
+
+        setInterval(() => {
+            const ahora = Date.now();
+            if (fraseActual.length > 0 && ahora - ultimoTiempo > CONFIG.TIEMPO_FRASE) {
+                procesarFrase(fraseActual);
+                fraseActual = "";
+                fraseDiv.innerText = "";
+            }
+        }, 1000);
+
+        // Envío a la API
+        async function enviarPrediccion(puntos) {
+            const response = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ puntos: puntos })
+            });
+            if (!response.ok) throw new Error(`Error API: ${response.status}`);
+            return await response.json();
+        }
+
+        // Inicialización del sistema MediaPipe
         async function iniciarSistema() {
             if (sistemaIniciado) return;
             try {
                 sistemaIniciado = true;
                 resultadoDiv.textContent = "Iniciando...";
-                
+
                 handsInstance = new Hands({
                     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
                 });
-                
+
                 handsInstance.setOptions({
                     maxNumHands: 1,
                     modelComplexity: 0,
                     minDetectionConfidence: 0.6,
                     minTrackingConfidence: 0.6
                 });
-                
-                let ultimaPrediccion = '';
-                let ultimoTiempo = 0;
-                const intervaloMinimo = 400; 
-                
-                handsInstance.onResults((results) => {
+
+                let ultimoTiempoPrediccion = 0;
+                const intervaloMinimo = 400;
+
+                handsInstance.onResults(async (results) => {
                     ctx.save();
                     ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+                    const ahora = Date.now();
+
                     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                        if (mostrarPuntos) dibujarLandmarks(results.multiHandLandmarks[0]);
-                        
-                        const ahora = Date.now();
-                        if (ahora - ultimoTiempo < intervaloMinimo) { ctx.restore(); return; }
-                        
+                        manoVisible = true;
+
+                        if (mostrarPuntos) {
+                            dibujarLandmarks(results.multiHandLandmarks[0]);
+                        }
+
+                        if (ahora - ultimoTiempoPrediccion < intervaloMinimo) {
+                            ctx.restore();
+                            return;
+                        }
+
                         const landmarks = results.multiHandLandmarks[0];
                         const puntos = [];
-                        landmarks.forEach(punto => puntos.push(punto.x, punto.y, punto.z));
-                        
-                        enviarPrediccion(puntos).then(data => {
+                        landmarks.forEach(p => puntos.push(p.x, p.y, p.z));
+
+                        try {
+                            const data = await enviarPrediccion(puntos);
                             if (data.indice >= 0 && data.indice < letras.length) {
                                 const letra = letras[data.indice];
-                                if (letra !== ultimaPrediccion) {
-                                    resultadoDiv.textContent = "Seña: " + letra;
-                                    resultadoDiv.style.boxShadow = "0 0 30px var(--primary)";
-                                    ultimaPrediccion = letra;
-                                }
+                                procesarPrediccion(letra);
                             }
-                            ultimoTiempo = ahora;
-                        }).catch(err => {
+                            ultimoTiempoPrediccion = ahora;
+                        } catch (error) {
+                            console.error('Error:', error);
                             resultadoDiv.textContent = "Error API";
-                        });
+                        }
                     } else {
+                        manoVisible = false;
+                        if (CONFIG.detectarEspacioPorDesaparicion && palabraActual.length > 0) {
+                            terminarPalabra();
+                        }
                         resultadoDiv.textContent = "✋ Muestra tu mano";
                         resultadoDiv.style.boxShadow = "none";
-                        ultimaPrediccion = '';
                     }
                     ctx.restore();
                 });
-                
+
                 cameraInstance = new Camera(videoElement, {
                     onFrame: async () => { await handsInstance.send({ image: videoElement }); },
-                    width: 640, height: 480, facingMode: 'user'
+                    width: 640, height: 480,
+                    facingMode: 'user'
                 });
-                
+
                 await cameraInstance.start();
-                resultadoDiv.textContent = "✅ ¡Listo! Empieza a signar";
-                
+                resultadoDiv.textContent = "✅ ¡Listo! Muestra tu mano";
+
+                // Configurar botones
                 document.getElementById('togglePuntos').addEventListener('click', togglePuntos);
                 document.getElementById('toggleCamara').addEventListener('click', cambiarCamara);
-                
+                document.getElementById('activarVoz').addEventListener('click', () => {
+                    vozActivada = true;
+                    hablar("Sistema de voz activado");
+                    const btnVoz = document.getElementById('activarVoz');
+                    btnVoz.style.background = "#00aa00";
+                    btnVoz.style.borderColor = "#ffffff";
+                });
+
+                console.log('✅ Sistema iniciado');
+
             } catch (error) {
+                console.error('Error crítico:', error);
                 resultadoDiv.textContent = "❌ Error al iniciar";
                 sistemaIniciado = false;
+                if (error.name === 'NotAllowedError') {
+                    alert("Permiso de cámara denegado. Recarga y permite acceso.");
+                } else if (error.name === 'NotFoundError') {
+                    alert("No se encontró cámara.");
+                } else {
+                    alert("Error: " + error.message);
+                }
             }
         }
-        
-        async function enviarPrediccion(puntos) {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ puntos: puntos })
-            });
-            return await response.json();
-        }
-        
+
+        // Eventos de inicio
         document.addEventListener('click', () => {
             if (!sistemaIniciado) iniciarSistema();
         }, { once: true });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !sistemaIniciado) iniciarSistema();
+        });
+
+        // Precargar voces
+        window.speechSynthesis.onvoiceschanged = () => {
+            console.log("Voces cargadas:", speechSynthesis.getVoices().length);
+        };
     </script>
 </body>
 </html>
