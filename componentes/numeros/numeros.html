@@ -214,14 +214,23 @@
     </style>
 </head>
 <body>
+<script type="module">
+    import { auth } from '../../js/firebase-config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+    onAuthStateChanged(auth, (user) => {
+        if (!user) {
+            window.location.href = 'login.html';
+        }
+    });
+</script>
     <button class="theme-toggle" id="theme-btn">
         <i class="bi bi-moon-stars-fill" id="theme-icon"></i>
     </button>
 
     <div id="main-wrapper">
         <header class="page-header">
-            <a href="../../index.html" class="back-btn" onclick="transicionSalida(event)">
+            <a href="../../caracteristicas.html" class="back-btn" onclick="transicionSalida(event)">
                 <i class="bi bi-arrow-left"></i>
             </a>
             <h1>Números</h1>
@@ -252,8 +261,6 @@
             </div>
         </main>
     </div>
-
-    
 
     <script>
         const themeBtn = document.getElementById('theme-btn');
@@ -313,15 +320,24 @@
             btn.onclick = () => {
                 document.querySelectorAll("#keyboard .key-btn").forEach(b => b.classList.remove("active"));
                 btn.classList.add("active");
-                showImage(num);
+                // Le pasamos 'false' porque NO es el quiz
+                showImage(num, false);
             };
             board.appendChild(btn);
         });
 
-        function showImage(num) {
+        // Modificamos showImage para que acepte un segundo parámetro 'isQuiz'
+        function showImage(num, isQuiz = false) {
             viewer.style.boxShadow = "0 0 30px var(--primary-glow)";
             const img = new Image();
-            img.src = `${assetsPath}${num}.jpeg`;
+            
+            // Si estamos en el quiz, busca la imagen recortada (ej. quiz_1.jpeg), si no, usa la normal (ej. 1.jpeg)
+            if (isQuiz) {
+                img.src = `${assetsPath}quiz_${num}.jpeg`;
+            } else {
+                img.src = `${assetsPath}${num}.jpeg`;
+            }
+
             img.onload = () => { viewer.innerHTML = ""; viewer.appendChild(img); };
             img.onerror = () => {
                 viewer.innerHTML = `<h1 style="font-size: 8rem; color: var(--primary); text-shadow: 0 0 20px var(--primary-glow);">${num}</h1>`;
@@ -346,7 +362,10 @@
         function nextQuestion() {
             document.getElementById("quiz-score").innerText = `Puntos: ${currentScore}`;
             currentTarget = numbers[Math.floor(Math.random() * numbers.length)];
-            showImage(currentTarget);
+            
+            // Le pasamos 'true' porque ESTE SÍ es el quiz
+            showImage(currentTarget, true); 
+            
             quizOptions.innerHTML = "";
             let opts = [currentTarget];
             while (opts.length < 4) {
@@ -378,6 +397,9 @@
                 quizOptions.appendChild(btn);
             });
         }
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
