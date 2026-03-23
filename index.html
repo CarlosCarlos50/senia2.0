@@ -3,31 +3,29 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SeñIA - Dashboard</title>
+    <title>SeñIA - Aprende Lengua de Señas</title>
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
 
     <style>
-        /* 1. VARIABLES DE COLOR (MODO OSCURO POR DEFECTO) */
         :root {
-            --bg-color: #0b2926;      /* Fondo verde oscuro */
-            --primary: #2de0d4;       /* Cian neón */
-            --primary-glow: rgba(45, 224, 212, 0.4); 
-            --text-main: #ffffff;     /* Blanco */
-            --text-muted: #8abeb9;    /* Gris azulado */
-            --card-bg: #113b37;       /* Tarjetas oscuras */
+            --bg-color: #0b2926;
+            --primary: #2de0d4;
+            --primary-glow: rgba(45, 224, 212, 0.4);
+            --text-main: #ffffff;
+            --text-muted: #8abeb9;
+            --card-bg: #113b37;
             --nav-bg: #071f1c;
         }
 
-        /* 2. VARIABLES PARA MODO CLARO */
         [data-theme="light"] {
-            --bg-color: #f0f4f4;      /* Fondo gris muy claro */
-            --primary: #1a9e95;       /* Turquesa más oscuro para contraste */
+            --bg-color: #f0f4f4;
+            --primary: #1a9e95;
             --primary-glow: rgba(26, 158, 149, 0.2);
-            --text-main: #1a2e2c;     /* Texto casi negro */
-            --text-muted: #5a7a76;    /* Gris oscuro */
-            --card-bg: #ffffff;       /* Tarjetas blancas */
+            --text-main: #1a2e2c;
+            --text-muted: #5a7a76;
+            --card-bg: #ffffff;
             --nav-bg: #ffffff;
         }
 
@@ -40,7 +38,6 @@
             transition: background-color 0.4s ease, color 0.4s ease;
         }
 
-        /* 3. BOTÓN DE MODO OSCURO/CLARO */
         .theme-toggle {
             position: fixed;
             top: 25px;
@@ -59,46 +56,58 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
         }
-
         .theme-toggle:hover {
             transform: scale(1.1);
             box-shadow: 0 0 15px var(--primary-glow);
         }
 
-        /* PANTALLA DE CARGA */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: #0b2926; /* Siempre oscuro al cargar */
+            background-color: #0b2926;
             display: flex; justify-content: center; align-items: center;
             z-index: 9999;
             transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
         }
-
         #splash-screen img { width: 250px; animation: pulse 1.5s infinite alternate; }
-
         @keyframes pulse {
             0% { transform: scale(0.95); opacity: 0.8; filter: drop-shadow(0 0 10px rgba(45, 224, 212, 0.4)); }
             100% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 25px #2de0d4); }
         }
-
         .splash-hidden { opacity: 0; visibility: hidden; }
 
         #main-content {
             opacity: 0; transform: translateY(30px);
             transition: opacity 1s ease-out, transform 1s ease-out;
         }
-
         #main-content.visible { opacity: 1; transform: translateY(0); }
 
-        /* DASHBOARD ESTILOS */
-        .page-header { padding: 30px 20px 10px; }
-        .page-header h1 { margin: 0; font-size: 1.8rem; font-weight: 700; color: var(--primary); }
-        .page-header p { margin: 5px 0 0; color: var(--text-muted); font-size: 0.95rem; }
+        .page-header {
+            padding: 30px 20px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-area img {
+            height: 70px;   /* Logo más grande */
+            width: auto;
+        }
+        .page-header p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
 
         main { padding: 10px 20px 100px; }
 
-        .hero-card {
+        .hero-card, .game-card {
             background: var(--card-bg);
             border-radius: 24px;
             padding: 25px;
@@ -107,10 +116,9 @@
             margin-bottom: 25px;
             transition: background-color 0.4s ease;
         }
+        .hero-card h2, .game-card h2 { margin: 0 0 5px; font-size: 1.5rem; color: var(--primary); }
+        .hero-card p, .game-card p { margin: 0 0 15px; font-size: 0.9rem; color: var(--text-muted); }
 
-        .hero-card h2 { margin: 0 0 5px; font-size: 1.5rem; color: var(--primary); }
-        .hero-card p { margin: 0 0 15px; font-size: 0.9rem; color: var(--text-muted); }
-        
         .hero-btn {
             background: var(--primary);
             color: #000; border: none; padding: 10px 20px; border-radius: 12px;
@@ -119,8 +127,106 @@
         }
         .hero-btn:hover { box-shadow: 0 0 15px var(--primary); }
 
-        /* GRID LECCIONES */
-        .grid-lecciones { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        /* Estilos del juego */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        .game-stats {
+            display: flex;
+            gap: 20px;
+        }
+        .game-stats span {
+            background: var(--bg-color);
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        .level-badge {
+            background: var(--primary);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-weight: bold;
+        }
+        .question-area {
+            text-align: center;
+            margin: 25px 0;
+        }
+        .question-img {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 20px;
+            background: var(--bg-color);
+            margin-bottom: 20px;
+        }
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .option-btn {
+            background: var(--bg-color);
+            border: 2px solid var(--primary-glow);
+            color: var(--text-main);
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 120px;
+        }
+        .option-btn:hover {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+        .game-feedback {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 15px 0;
+            color: var(--primary);
+        }
+        .next-btn {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .category-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .cat-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .cat-btn.active {
+            background: var(--primary);
+            color: #000;
+        }
+
+        .grid-lecciones { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
 
         .leccion-card {
             background: var(--card-bg);
@@ -129,7 +235,6 @@
             display: flex; flex-direction: column; align-items: flex-start;
             transition: all 0.3s ease;
         }
-
         .leccion-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 5px 15px var(--primary-glow); }
 
         .leccion-icon {
@@ -138,25 +243,20 @@
             font-size: 1.3rem; margin-bottom: 12px;
             background: var(--primary-glow); color: var(--primary);
         }
-
         .leccion-card h3 { margin: 0; font-size: 1rem; font-weight: 600; color: var(--text-main); }
         .leccion-card p { margin: 4px 0 0; font-size: 0.8rem; color: var(--text-muted); }
 
-        /* NAVEGACIÓN INFERIOR */
         .bottom-nav {
             position: fixed; bottom: 0; width: 100%;
             background: var(--nav-bg);
             display: flex; justify-content: space-around;
             padding: 15px 0; border-top: 1px solid var(--primary-glow);
             border-top-left-radius: 24px; border-top-right-radius: 24px;
-            transition: background-color 0.4s ease;
         }
-
         .nav-link {
             display: flex; flex-direction: column; align-items: center;
             text-decoration: none; color: var(--text-muted); font-size: 0.75rem; gap: 4px;
         }
-
         .nav-link.active { color: var(--primary); font-weight: bold; }
     </style>
 </head>
@@ -167,16 +267,20 @@
     </button>
 
     <div id="splash-screen">
-        <img src="155a4c37-5a91-4ec8-9a18-f3f6373fd043_inspyrenet.png" alt="Logo SeñIA">
+      <img src="C:\Users\CBTIS 106\Desktop\Nueva carpeta (10)\155a4c37-5a91-4ec8-9a18-f3f6373fd043_inspyrenet.png" alt="Logo SeñIA">
     </div>
 
     <div id="main-content">
         <header class="page-header">
-            <h1>SeñIA</h1>
-            <p>¿Qué quieres aprender hoy, amigazo?</p>
+            <div class="logo-area">
+                <!-- CAMBIA LA RUTA POR LA DE TU LOGO REAL -->
+                <img src="C:\Users\CBTIS 106\Desktop\Nueva carpeta (10)\155a4c37-5a91-4ec8-9a18-f3f6373fd043_inspyrenet.png" alt="Logo SeñIA">
+            </div>
+            <p>Plataforma educativa para el aprendizaje de la Lengua de Señas Mexicana</p>
         </header>
 
         <main>
+            <!-- Intérprete IA -->
             <section class="hero-card">
                 <h2>Intérprete IA</h2>
                 <p>Traduce lengua de señas en tiempo real usando tu cámara.</p>
@@ -186,6 +290,36 @@
                 <span id="texto-resultado" style="margin-left: 10px; font-weight: bold; color: var(--primary);"></span>
             </section>
 
+            <!-- MINIJUEGOS -->
+            <section class="game-card">
+                <h2>🎮 Minijuegos</h2>
+                <p>Pon a prueba tus conocimientos con este quiz interactivo. ¡Acumula puntos y sube de nivel!</p>
+
+                <div class="category-selector" id="categorySelector">
+                    <button data-cat="alfabeto" class="cat-btn active">Abecedario</button>
+                    <button data-cat="numeros" class="cat-btn">Números</button>
+                    <button data-cat="colores" class="cat-btn">Colores</button>
+                    <button data-cat="palabras" class="cat-btn">Palabras clave</button>
+                </div>
+
+                <div class="game-header">
+                    <div class="game-stats">
+                        <span>🏆 Puntos: <span id="puntos">0</span></span>
+                        <span>🎯 Aciertos consecutivos: <span id="aciertos">0</span></span>
+                    </div>
+                    <div class="level-badge" id="levelBadge">Nivel 1</div>
+                </div>
+
+                <div class="question-area">
+                    <img id="preguntaImg" class="question-img" src="assets/placeholder.jpg" alt="Seña">
+                    <div id="preguntaTexto" style="font-size: 1.2rem; margin: 10px 0;">¿Qué seña es esta?</div>
+                    <div id="opciones" class="options"></div>
+                    <div id="feedback" class="game-feedback"></div>
+                    <button id="siguientePregunta" class="next-btn" style="display: none;">Siguiente pregunta ➡️</button>
+                </div>
+            </section>
+
+            <!-- Secciones de aprendizaje -->
             <section class="grid-lecciones">
                 <a href="componentes/alfabeto/alfabeto.html" class="leccion-card">
                     <div class="leccion-icon"><i class="bi bi-fonts"></i></div>
@@ -211,11 +345,11 @@
         </main>
 
         <nav class="bottom-nav">
-            <a href="index.html" class="nav-link">
+            <a href="index.html" class="nav-link active">
                 <i class="bi bi-house-door-fill" style="font-size: 1.5rem;"></i>
                 <span>Inicio</span>
             </a>
-            <a href="caracteristicas.html" class="nav-link active">
+            <a href="caracteristicas.html" class="nav-link">
                 <i class="bi bi-grid-fill" style="font-size: 1.5rem;"></i>
                 <span>Aprender</span>
             </a>
@@ -223,37 +357,193 @@
     </div>
 
     <script>
-        // 1. LÓGICA DE LA PANTALLA DE CARGA
+        // Splash y animación
         document.addEventListener("DOMContentLoaded", () => {
-            const splashScreen = document.getElementById("splash-screen");
+            const splash = document.getElementById("splash-screen");
             const mainContent = document.getElementById("main-content");
-
             setTimeout(() => {
-                splashScreen.classList.add("splash-hidden");
+                splash.classList.add("splash-hidden");
                 mainContent.classList.add("visible");
             }, 2000);
         });
 
-        // 2. LÓGICA DEL MODO CLARO / OSCURO
+        // Modo oscuro/claro
         const themeBtn = document.getElementById('theme-btn');
         const themeIcon = document.getElementById('theme-icon');
         const body = document.body;
-
         themeBtn.addEventListener('click', () => {
-            // Si tiene el atributo "light", lo quitamos para volver a oscuro
             if (body.getAttribute('data-theme') === 'light') {
                 body.removeAttribute('data-theme');
                 themeIcon.classList.replace('bi-sun-fill', 'bi-moon-stars-fill');
             } else {
-                // Si no lo tiene, lo ponemos
                 body.setAttribute('data-theme', 'light');
                 themeIcon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
             }
         });
 
-      document.getElementById('btn-iniciar-senas').addEventListener('click', function() {
-        window.location.href = 'componentes/interprete/interprete.html';
-    });
+        // Botón del intérprete
+        document.getElementById('btn-iniciar-senas').addEventListener('click', () => {
+            window.location.href = 'componentes/interprete/interprete.html';
+        });
+
+        // ==================== MINIJUEGO ====================
+        // 📌 Base de datos de preguntas con rutas directas a la carpeta assets
+        // Asegúrate de que los nombres de archivo coincidan con los que tienes.
+        // Si alguna imagen no existe, se mostrará un placeholder.
+        const preguntasDB = {
+            alfabeto: [
+                { img: "assets/quiz_A.png", palabra: "A", opciones: ["A", "B", "C", "D"] },
+                { img: "assets/quiz_B.png", palabra: "B", opciones: ["B", "C", "D", "A"] },
+                { img: "assets/quiz_C.png", palabra: "C", opciones: ["C", "B", "A", "D"] },
+                { img: "assets/quiz_D.png", palabra: "D", opciones: ["D", "C", "B", "A"] }
+                // Puedes agregar más letras (E, F, etc.) siguiendo el mismo patrón
+            ],
+            numeros: [
+                { img: "assets/quiz_1.jpeg", palabra: "1", opciones: ["1", "2", "3", "4"] },
+                { img: "assets/quiz_2.jpeg", palabra: "2", opciones: ["2", "1", "3", "4"] },
+                { img: "assets/quiz_3.jpeg", palabra: "3", opciones: ["3", "1", "2", "4"] },
+                { img: "assets/quiz_4.jpeg", palabra: "4", opciones: ["4", "1", "2", "3"] }
+                // Agrega más números (5,6,...)
+            ],
+            colores: [
+                { img: "assets/rojo.jpeg", palabra: "Rojo", opciones: ["Rojo", "Azul", "Verde", "Amarillo"] },
+                { img: "assets/azul.jpeg", palabra: "Azul", opciones: ["Azul", "Rojo", "Verde", "Amarillo"] },
+                { img: "assets/verde.jpeg", palabra: "Verde", opciones: ["Verde", "Azul", "Rojo", "Amarillo"] },
+                { img: "assets/amarillo.jpeg", palabra: "Amarillo", opciones: ["Amarillo", "Rojo", "Azul", "Verde"] }
+            ],
+            palabras: [
+                { img: "assets/quiz_hola.jpg", palabra: "Hola", opciones: ["Hola", "Adiós", "Gracias", "Por favor"] },
+                { img: "assets/quiz_adios.png", palabra: "Adiós", opciones: ["Adiós", "Hola", "Gracias", "Por favor"] },
+                { img: "assets/quiz_gracias.png", palabra: "Gracias", opciones: ["Gracias", "Por favor", "Hola", "Adiós"] },
+                { img: "assets/quiz_porfavor.jpg", palabra: "Por favor", opciones: ["Por favor", "Gracias", "Hola", "Adiós"] }
+            ]
+        };
+
+        let categoriaActual = "alfabeto";
+        let preguntas = [...preguntasDB.alfabeto];
+        let preguntaActualIndex = 0;
+        let puntos = 0;
+        let aciertosConsecutivos = 0;
+        let nivel = 1;
+        let esperandoRespuesta = true;
+        let preguntaActual = null;
+
+        const preguntaImg = document.getElementById("preguntaImg");
+        const opcionesDiv = document.getElementById("opciones");
+        const feedbackDiv = document.getElementById("feedback");
+        const siguienteBtn = document.getElementById("siguientePregunta");
+        const puntosSpan = document.getElementById("puntos");
+        const aciertosSpan = document.getElementById("aciertos");
+        const levelBadge = document.getElementById("levelBadge");
+
+        const frasesNivel = {
+            1: "✨ ¡Bienvenido! Sigue así. ✨",
+            2: "🌟 ¡Muy bien! Estás aprendiendo rápido. 🌟",
+            3: "⭐ ¡Excelente! Ya eres un conocedor. ⭐",
+            4: "🏆 ¡Impresionante! Eres todo un experto. 🏆",
+            5: "💎 ¡Maestro! Nivel máximo alcanzado. 💎"
+        };
+
+        function actualizarUI() {
+            puntosSpan.textContent = puntos;
+            aciertosSpan.textContent = aciertosConsecutivos;
+            let nivelCalculado = Math.floor(aciertosConsecutivos / 5) + 1;
+            if (nivelCalculado > 5) nivelCalculado = 5;
+            nivel = nivelCalculado;
+            levelBadge.textContent = `Nivel ${nivel}`;
+        }
+
+        function barajar(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function mostrarPregunta() {
+            if (preguntaActualIndex >= preguntas.length) {
+                barajar(preguntas);
+                preguntaActualIndex = 0;
+            }
+            preguntaActual = preguntas[preguntaActualIndex];
+            preguntaImg.src = preguntaActual.img;
+            preguntaImg.onerror = () => { preguntaImg.src = "https://placehold.co/200x200/0b2926/2de0d4?text=Seña"; };
+            document.getElementById("preguntaTexto").textContent = "¿Qué seña es esta?";
+            opcionesDiv.innerHTML = "";
+            preguntaActual.opciones.forEach(op => {
+                const btn = document.createElement("button");
+                btn.className = "option-btn";
+                btn.textContent = op;
+                btn.addEventListener("click", () => verificarRespuesta(op, btn));
+                opcionesDiv.appendChild(btn);
+            });
+            feedbackDiv.textContent = "";
+            siguienteBtn.style.display = "none";
+            esperandoRespuesta = true;
+        }
+
+        function verificarRespuesta(respuesta, btn) {
+            if (!esperandoRespuesta) return;
+            if (respuesta === preguntaActual.palabra) {
+                puntos += 10;
+                aciertosConsecutivos++;
+                feedbackDiv.innerHTML = "✅ ¡Correcto! +10 puntos 🎉";
+                if (aciertosConsecutivos % 5 === 0) {
+                    let nivelNuevo = Math.floor(aciertosConsecutivos / 5) + 1;
+                    if (nivelNuevo <= 5) {
+                        feedbackDiv.innerHTML += `<br>${frasesNivel[nivelNuevo]}`;
+                    } else {
+                        feedbackDiv.innerHTML += "<br>🏆 ¡Eres un campeón! 🏆";
+                    }
+                }
+                esperandoRespuesta = false;
+                siguienteBtn.style.display = "block";
+            } else {
+                puntos = Math.max(0, puntos - 5);
+                aciertosConsecutivos = 0;
+                feedbackDiv.innerHTML = "❌ Incorrecto. ¡Sigue practicando!";
+                esperandoRespuesta = false;
+                siguienteBtn.style.display = "block";
+            }
+            actualizarUI();
+            document.querySelectorAll(".option-btn").forEach(b => b.style.pointerEvents = "none");
+        }
+
+        function siguientePregunta() {
+            preguntaActualIndex++;
+            mostrarPregunta();
+            document.querySelectorAll(".option-btn").forEach(b => b.style.pointerEvents = "auto");
+        }
+
+        function cambiarCategoria(categoria) {
+            categoriaActual = categoria;
+            switch (categoria) {
+                case "alfabeto": preguntas = [...preguntasDB.alfabeto]; break;
+                case "numeros": preguntas = [...preguntasDB.numeros]; break;
+                case "colores": preguntas = [...preguntasDB.colores]; break;
+                case "palabras": preguntas = [...preguntasDB.palabras]; break;
+                default: preguntas = [...preguntasDB.alfabeto];
+            }
+            barajar(preguntas);
+            preguntaActualIndex = 0;
+            puntos = 0;
+            aciertosConsecutivos = 0;
+            actualizarUI();
+            mostrarPregunta();
+            document.querySelectorAll(".cat-btn").forEach(btn => {
+                if (btn.dataset.cat === categoria) btn.classList.add("active");
+                else btn.classList.remove("active");
+            });
+        }
+
+        document.querySelectorAll(".cat-btn").forEach(btn => {
+            btn.addEventListener("click", () => cambiarCategoria(btn.dataset.cat));
+        });
+        siguienteBtn.addEventListener("click", siguientePregunta);
+
+        barajar(preguntas);
+        mostrarPregunta();
     </script>
 </body>
 </html>
