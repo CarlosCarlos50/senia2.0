@@ -284,38 +284,48 @@
                 new bootstrap.Modal(document.getElementById("signModal")).show();
             }
 
-            // IA GEMINI
-            async function preguntarIA() {
-                const input = document.getElementById('ai-input');
-                const resultDiv = document.getElementById('ai-result');
-                const btn = document.getElementById('ai-btn');
-                const pregunta = input.value.trim();
+           async function preguntarIA() {
+    const input = document.getElementById('ai-input');
+    const resultDiv = document.getElementById('ai-result');
+    const btn = document.getElementById('ai-btn');
+    const pregunta = input.value.trim();
 
-                if (!pregunta) return;
+    if (!pregunta) return;
 
-                resultDiv.innerHTML = '<i class="bi bi-hourglass-split"></i> Consultando...';
-                btn.disabled = true;
+    resultDiv.innerHTML = '<i class="bi bi-hourglass-split"></i> Consultando a la IA...';
+    btn.disabled = true;
 
-                const API_KEY = 'AIzaSyD_J8BTp4EdLzUbZED2mdUwnMpgjaCNp5I'; 
-                const modelo = 'gemini-1.5-flash';
+    // IMPORTANTE: Debes usar una API KEY válida de Google AI Studio
+    const API_KEY = 'TU_API_KEY_AQUI'; 
+    const modelo = 'gemini-1.5-flash';
 
-                try {
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${API_KEY}`;
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: "Responde brevemente como experto en LSM sobre: " + pregunta }] }]
-                        })
-                    });
-                    const data = await response.json();
-                    resultDiv.innerText = data.candidates[0].content.parts[0].text;
-                } catch (err) {
-                    resultDiv.innerHTML = '<span class="text-danger">Error de conexión.</span>';
-                } finally {
-                    btn.disabled = false;
-                }
-            }
+    try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${API_KEY}`;
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ 
+                    parts: [{ text: "Eres un experto en Lengua de Señas Mexicana (LSM). Responde de forma breve y clara a esta duda: " + pregunta }] 
+                }]
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.candidates && data.candidates[0].content.parts[0].text) {
+            resultDiv.innerText = data.candidates[0].content.parts[0].text;
+        } else {
+            resultDiv.innerText = "La IA no pudo generar una respuesta ahora.";
+        }
+    } catch (err) {
+        console.error(err);
+        resultDiv.innerHTML = '<span class="text-danger">Error: Verifica tu conexión o la API Key.</span>';
+    } finally {
+        btn.disabled = false;
+    }
+}
         </script>
     </body>
 </html>
