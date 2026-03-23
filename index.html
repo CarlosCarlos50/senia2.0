@@ -96,7 +96,7 @@
             gap: 12px;
         }
         .logo-area img {
-            height: 70px;   /* Logo más grande */
+            height: 70px;
             width: auto;
         }
         .page-header p {
@@ -107,7 +107,7 @@
 
         main { padding: 10px 20px 100px; }
 
-        .hero-card, .game-card {
+        .hero-card {
             background: var(--card-bg);
             border-radius: 24px;
             padding: 25px;
@@ -116,8 +116,8 @@
             margin-bottom: 25px;
             transition: background-color 0.4s ease;
         }
-        .hero-card h2, .game-card h2 { margin: 0 0 5px; font-size: 1.5rem; color: var(--primary); }
-        .hero-card p, .game-card p { margin: 0 0 15px; font-size: 0.9rem; color: var(--text-muted); }
+        .hero-card h2 { margin: 0 0 5px; font-size: 1.5rem; color: var(--primary); }
+        .hero-card p { margin: 0 0 15px; font-size: 0.9rem; color: var(--text-muted); }
 
         .hero-btn {
             background: var(--primary);
@@ -126,105 +126,6 @@
             align-items: center; gap: 8px; transition: 0.2s;
         }
         .hero-btn:hover { box-shadow: 0 0 15px var(--primary); }
-
-        /* Estilos del juego */
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            gap: 10px;
-        }
-        .game-stats {
-            display: flex;
-            gap: 20px;
-        }
-        .game-stats span {
-            background: var(--bg-color);
-            padding: 8px 15px;
-            border-radius: 30px;
-            font-weight: bold;
-            color: var(--primary);
-        }
-        .level-badge {
-            background: var(--primary);
-            color: #000;
-            padding: 5px 15px;
-            border-radius: 30px;
-            font-weight: bold;
-        }
-        .question-area {
-            text-align: center;
-            margin: 25px 0;
-        }
-        .question-img {
-            width: 200px;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 20px;
-            background: var(--bg-color);
-            margin-bottom: 20px;
-        }
-        .options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-            margin: 20px 0;
-        }
-        .option-btn {
-            background: var(--bg-color);
-            border: 2px solid var(--primary-glow);
-            color: var(--text-main);
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            min-width: 120px;
-        }
-        .option-btn:hover {
-            background: var(--primary);
-            color: #000;
-            border-color: var(--primary);
-        }
-        .game-feedback {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin: 15px 0;
-            color: var(--primary);
-        }
-        .next-btn {
-            background: var(--primary);
-            color: #000;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .category-selector {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .cat-btn {
-            background: var(--card-bg);
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 6px 12px;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .cat-btn.active {
-            background: var(--primary);
-            color: #000;
-        }
 
         .grid-lecciones { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
 
@@ -267,20 +168,18 @@
     </button>
 
     <div id="splash-screen">
-   <img src="155a4c37-5a91-4ec8-9a18-f3f6373fd043_inspyrenet.png" alt="Logo SeñIA">
+        <img src="155a4c37-5a91-4ec8-9a18-f3f6373fd043_inspyrenet.png" alt="Logo SeñIA">
     </div>
 
     <div id="main-content">
         <header class="page-header">
             <div class="logo-area">
-                <!-- CAMBIA LA RUTA POR LA DE TU LOGO REAL -->
                 <img src="155a4c37-5a91-4ec8-9a18-f3f6373fd043_inspyrenet.png" alt="Logo SeñIA">
             </div>
             <p>Plataforma educativa para el aprendizaje de la Lengua de Señas Mexicana</p>
         </header>
 
         <main>
-            <!-- Intérprete IA -->
             <section class="hero-card">
                 <h2>Intérprete IA</h2>
                 <p>Traduce lengua de señas en tiempo real usando tu cámara.</p>
@@ -290,36 +189,6 @@
                 <span id="texto-resultado" style="margin-left: 10px; font-weight: bold; color: var(--primary);"></span>
             </section>
 
-            <!-- MINIJUEGOS -->
-            <section class="game-card">
-                <h2>🎮 Minijuegos</h2>
-                <p>Pon a prueba tus conocimientos con este quiz interactivo. ¡Acumula puntos y sube de nivel!</p>
-
-                <div class="category-selector" id="categorySelector">
-                    <button data-cat="alfabeto" class="cat-btn active">Abecedario</button>
-                    <button data-cat="numeros" class="cat-btn">Números</button>
-                    <button data-cat="colores" class="cat-btn">Colores</button>
-                    <button data-cat="palabras" class="cat-btn">Palabras clave</button>
-                </div>
-
-                <div class="game-header">
-                    <div class="game-stats">
-                        <span>🏆 Puntos: <span id="puntos">0</span></span>
-                        <span>🎯 Aciertos consecutivos: <span id="aciertos">0</span></span>
-                    </div>
-                    <div class="level-badge" id="levelBadge">Nivel 1</div>
-                </div>
-
-                <div class="question-area">
-                    <img id="preguntaImg" class="question-img" src="assets/placeholder.jpg" alt="Seña">
-                    <div id="preguntaTexto" style="font-size: 1.2rem; margin: 10px 0;">¿Qué seña es esta?</div>
-                    <div id="opciones" class="options"></div>
-                    <div id="feedback" class="game-feedback"></div>
-                    <button id="siguientePregunta" class="next-btn" style="display: none;">Siguiente pregunta ➡️</button>
-                </div>
-            </section>
-
-            <!-- Secciones de aprendizaje -->
             <section class="grid-lecciones">
                 <a href="componentes/alfabeto/alfabeto.html" class="leccion-card">
                     <div class="leccion-icon"><i class="bi bi-fonts"></i></div>
@@ -349,15 +218,14 @@
                 <i class="bi bi-house-door-fill" style="font-size: 1.5rem;"></i>
                 <span>Inicio</span>
             </a>
-            <a href="caracteristicas.html" class="nav-link">
-                <i class="bi bi-grid-fill" style="font-size: 1.5rem;"></i>
-                <span>Aprender</span>
+            <a href="juegos.html" class="nav-link">
+                <i class="bi bi-joystick" style="font-size: 1.5rem;"></i>
+                <span>Juegos</span>
             </a>
         </nav>
     </div>
 
     <script>
-        // Splash y animación
         document.addEventListener("DOMContentLoaded", () => {
             const splash = document.getElementById("splash-screen");
             const mainContent = document.getElementById("main-content");
@@ -367,7 +235,6 @@
             }, 2000);
         });
 
-        // Modo oscuro/claro
         const themeBtn = document.getElementById('theme-btn');
         const themeIcon = document.getElementById('theme-icon');
         const body = document.body;
@@ -381,169 +248,9 @@
             }
         });
 
-        // Botón del intérprete
         document.getElementById('btn-iniciar-senas').addEventListener('click', () => {
             window.location.href = 'componentes/interprete/interprete.html';
         });
-
-        // ==================== MINIJUEGO ====================
-        // 📌 Base de datos de preguntas con rutas directas a la carpeta assets
-        // Asegúrate de que los nombres de archivo coincidan con los que tienes.
-        // Si alguna imagen no existe, se mostrará un placeholder.
-        const preguntasDB = {
-            alfabeto: [
-                { img: "assets/quiz_A.png", palabra: "A", opciones: ["A", "B", "C", "D"] },
-                { img: "assets/quiz_B.png", palabra: "B", opciones: ["B", "C", "D", "A"] },
-                { img: "assets/quiz_C.png", palabra: "C", opciones: ["C", "B", "A", "D"] },
-                { img: "assets/quiz_D.png", palabra: "D", opciones: ["D", "C", "B", "A"] }
-                // Puedes agregar más letras (E, F, etc.) siguiendo el mismo patrón
-            ],
-            numeros: [
-                { img: "assets/quiz_1.jpeg", palabra: "1", opciones: ["1", "2", "3", "4"] },
-                { img: "assets/quiz_2.jpeg", palabra: "2", opciones: ["2", "1", "3", "4"] },
-                { img: "assets/quiz_3.jpeg", palabra: "3", opciones: ["3", "1", "2", "4"] },
-                { img: "assets/quiz_4.jpeg", palabra: "4", opciones: ["4", "1", "2", "3"] }
-                // Agrega más números (5,6,...)
-            ],
-            colores: [
-                { img: "assets/rojo.jpeg", palabra: "Rojo", opciones: ["Rojo", "Azul", "Verde", "Amarillo"] },
-                { img: "assets/azul.jpeg", palabra: "Azul", opciones: ["Azul", "Rojo", "Verde", "Amarillo"] },
-                { img: "assets/verde.jpeg", palabra: "Verde", opciones: ["Verde", "Azul", "Rojo", "Amarillo"] },
-                { img: "assets/amarillo.jpeg", palabra: "Amarillo", opciones: ["Amarillo", "Rojo", "Azul", "Verde"] }
-            ],
-            palabras: [
-                { img: "assets/quiz_hola.jpg", palabra: "Hola", opciones: ["Hola", "Adiós", "Gracias", "Por favor"] },
-                { img: "assets/quiz_adios.png", palabra: "Adiós", opciones: ["Adiós", "Hola", "Gracias", "Por favor"] },
-                { img: "assets/quiz_gracias.png", palabra: "Gracias", opciones: ["Gracias", "Por favor", "Hola", "Adiós"] },
-                { img: "assets/quiz_porfavor.jpg", palabra: "Por favor", opciones: ["Por favor", "Gracias", "Hola", "Adiós"] }
-            ]
-        };
-
-        let categoriaActual = "alfabeto";
-        let preguntas = [...preguntasDB.alfabeto];
-        let preguntaActualIndex = 0;
-        let puntos = 0;
-        let aciertosConsecutivos = 0;
-        let nivel = 1;
-        let esperandoRespuesta = true;
-        let preguntaActual = null;
-
-        const preguntaImg = document.getElementById("preguntaImg");
-        const opcionesDiv = document.getElementById("opciones");
-        const feedbackDiv = document.getElementById("feedback");
-        const siguienteBtn = document.getElementById("siguientePregunta");
-        const puntosSpan = document.getElementById("puntos");
-        const aciertosSpan = document.getElementById("aciertos");
-        const levelBadge = document.getElementById("levelBadge");
-
-        const frasesNivel = {
-            1: "✨ ¡Bienvenido! Sigue así. ✨",
-            2: "🌟 ¡Muy bien! Estás aprendiendo rápido. 🌟",
-            3: "⭐ ¡Excelente! Ya eres un conocedor. ⭐",
-            4: "🏆 ¡Impresionante! Eres todo un experto. 🏆",
-            5: "💎 ¡Maestro! Nivel máximo alcanzado. 💎"
-        };
-
-        function actualizarUI() {
-            puntosSpan.textContent = puntos;
-            aciertosSpan.textContent = aciertosConsecutivos;
-            let nivelCalculado = Math.floor(aciertosConsecutivos / 5) + 1;
-            if (nivelCalculado > 5) nivelCalculado = 5;
-            nivel = nivelCalculado;
-            levelBadge.textContent = `Nivel ${nivel}`;
-        }
-
-        function barajar(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function mostrarPregunta() {
-            if (preguntaActualIndex >= preguntas.length) {
-                barajar(preguntas);
-                preguntaActualIndex = 0;
-            }
-            preguntaActual = preguntas[preguntaActualIndex];
-            preguntaImg.src = preguntaActual.img;
-            preguntaImg.onerror = () => { preguntaImg.src = "https://placehold.co/200x200/0b2926/2de0d4?text=Seña"; };
-            document.getElementById("preguntaTexto").textContent = "¿Qué seña es esta?";
-            opcionesDiv.innerHTML = "";
-            preguntaActual.opciones.forEach(op => {
-                const btn = document.createElement("button");
-                btn.className = "option-btn";
-                btn.textContent = op;
-                btn.addEventListener("click", () => verificarRespuesta(op, btn));
-                opcionesDiv.appendChild(btn);
-            });
-            feedbackDiv.textContent = "";
-            siguienteBtn.style.display = "none";
-            esperandoRespuesta = true;
-        }
-
-        function verificarRespuesta(respuesta, btn) {
-            if (!esperandoRespuesta) return;
-            if (respuesta === preguntaActual.palabra) {
-                puntos += 10;
-                aciertosConsecutivos++;
-                feedbackDiv.innerHTML = "✅ ¡Correcto! +10 puntos 🎉";
-                if (aciertosConsecutivos % 5 === 0) {
-                    let nivelNuevo = Math.floor(aciertosConsecutivos / 5) + 1;
-                    if (nivelNuevo <= 5) {
-                        feedbackDiv.innerHTML += `<br>${frasesNivel[nivelNuevo]}`;
-                    } else {
-                        feedbackDiv.innerHTML += "<br>🏆 ¡Eres un campeón! 🏆";
-                    }
-                }
-                esperandoRespuesta = false;
-                siguienteBtn.style.display = "block";
-            } else {
-                puntos = Math.max(0, puntos - 5);
-                aciertosConsecutivos = 0;
-                feedbackDiv.innerHTML = "❌ Incorrecto. ¡Sigue practicando!";
-                esperandoRespuesta = false;
-                siguienteBtn.style.display = "block";
-            }
-            actualizarUI();
-            document.querySelectorAll(".option-btn").forEach(b => b.style.pointerEvents = "none");
-        }
-
-        function siguientePregunta() {
-            preguntaActualIndex++;
-            mostrarPregunta();
-            document.querySelectorAll(".option-btn").forEach(b => b.style.pointerEvents = "auto");
-        }
-
-        function cambiarCategoria(categoria) {
-            categoriaActual = categoria;
-            switch (categoria) {
-                case "alfabeto": preguntas = [...preguntasDB.alfabeto]; break;
-                case "numeros": preguntas = [...preguntasDB.numeros]; break;
-                case "colores": preguntas = [...preguntasDB.colores]; break;
-                case "palabras": preguntas = [...preguntasDB.palabras]; break;
-                default: preguntas = [...preguntasDB.alfabeto];
-            }
-            barajar(preguntas);
-            preguntaActualIndex = 0;
-            puntos = 0;
-            aciertosConsecutivos = 0;
-            actualizarUI();
-            mostrarPregunta();
-            document.querySelectorAll(".cat-btn").forEach(btn => {
-                if (btn.dataset.cat === categoria) btn.classList.add("active");
-                else btn.classList.remove("active");
-            });
-        }
-
-        document.querySelectorAll(".cat-btn").forEach(btn => {
-            btn.addEventListener("click", () => cambiarCategoria(btn.dataset.cat));
-        });
-        siguienteBtn.addEventListener("click", siguientePregunta);
-
-        barajar(preguntas);
-        mostrarPregunta();
     </script>
 </body>
 </html>
