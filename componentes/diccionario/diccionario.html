@@ -429,71 +429,82 @@
             const params = new URLSearchParams(window.location.search);
             if (params.has("categoria")) loadCategory(params.get("categoria"));
 
-            // =============================================
-            // Asistente IA (tu script adaptado)
-            // =============================================
-            async function preguntarIA() {
-                const input = document.getElementById('ai-input');
-                const resultDiv = document.getElementById('ai-result');
-                const btn = document.getElementById('ai-btn');
-                const pregunta = input.value.trim();
+         // =============================================
+// Asistente IA - Configuración SeñIA 2026
+// =============================================
+async function preguntarIA() {
+    const input = document.getElementById('ai-input');
+    const resultDiv = document.getElementById('ai-result');
+    const btn = document.getElementById('ai-btn');
+    const pregunta = input.value.trim();
 
-                if (!pregunta) {
-                    resultDiv.style.display = 'block';
-                    resultDiv.textContent = 'Escribe una pregunta sobre señas 😊';
-                    return;
+    if (!pregunta) {
+        resultDiv.style.display = 'block';
+        resultDiv.textContent = 'Escribe una pregunta sobre señas 😊';
+        return;
+    }
+
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"></div> <small>Consultando a SeñIA...</small>';
+    btn.disabled = true;
+
+    // Contexto optimizado para Lengua de Señas Mexicana
+    const contexto = 
+        "Eres un experto en Lengua de Señas Mexicana (LSM). Ayudas a usuarios de la app SeñIA. " +
+        "Responde de forma breve, clara y positiva en español. " +
+        "Si preguntan por una seña, describe brevemente la posición de las manos y el movimiento. " +
+        "Si la pregunta no es sobre LSM, indica amablemente que tu especialidad es la lengua de señas.";
+
+    // Configuración de API
+    const API_KEY = 'AIzaSyAy1OJ5qk92lpyefSwzdHiBIcyLAtgPfQI'; 
+    const modelo = 'gemini-1.5-flash'; 
+
+    try {
+        const url = `https://generativelanguage.googleapis.com/v1/models/${modelo}:generateContent?key=${API_KEY}`;
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ 
+                    parts: [{ text: contexto + "\n\nPregunta del usuario: " + pregunta }] 
+                }],
+                generationConfig: {
+                    maxOutputTokens: 250,
+                    temperature: 0.7
                 }
+            })
+        });
 
-                resultDiv.style.display = 'block';
-                resultDiv.innerHTML = '<small>Pensando...</small>';
-                btn.disabled = true;
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || `Error HTTP ${response.status}`);
+        }
 
-                const contexto =
-                    "Eres un asistente breve y útil de la app SeñIA para aprender Lengua de Señas Mexicana (LSM). " +
-                    "Responde SIEMPRE en español, corto, claro y positivo. " +
-                    "Si no es sobre LSM, di amablemente que solo ayudas con temas de lengua de señas mexicana.";
+        const data = await response.json();
+        let texto = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'No pude obtener una respuesta en este momento.';
+        
+        // Limpieza básica de formato markdown si Gemini lo incluye
+        texto = texto.replace(/[*#]/g, '').trim();
+        
+        resultDiv.innerHTML = `<i class="bi bi-chat-left-dots-fill me-2"></i> ${texto}`;
+        
+    } catch (err) {
+        console.error("Detalle del error:", err);
+        resultDiv.innerHTML = `<span class="ai-error"><i class="bi bi-exclamation-triangle"></i> Error: No se pudo conectar con el servicio. Verifica tu conexión o la configuración de la API.</span>`;
+    } finally {
+        btn.disabled = false;
+    }
+}
 
-                // ¡Cambia esto por tu clave API real en producción!
-                const API_KEY = 'AIzaSyAy1OJ5qk92lpyefSwzdHiBIcyLAtgPfQI';
-                const modelo = 'gemini-2.5-flash';  // Versión estable recomendada en 2026
-
-                try {
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${API_KEY}`;
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: contexto + "\n\nPregunta: " + pregunta }] }],
-                            generationConfig: {
-                                maxOutputTokens: 300,
-                                temperature: 0.7
-                            }
-                        })
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-
-                    const data = await response.json();
-                    let texto = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'No pude obtener respuesta clara.';
-                    texto = texto.replace(/```/g, '').trim();
-                    resultDiv.textContent = texto;
-                } catch (err) {
-                    console.error(err);
-                    resultDiv.innerHTML = '<span class="ai-error">Error al conectar. Intenta de nuevo.</span>';
-                } finally {
-                    btn.disabled = false;
-                }
-            }
-
-            document.getElementById('ai-btn').addEventListener('click', preguntarIA);
-            document.getElementById('ai-input').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    preguntarIA();
-                }
-            });
+// Eventos de escucha
+document.getElementById('ai-btn').addEventListener('click', preguntarIA);
+document.getElementById('ai-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        preguntarIA();
+    }
+});
         </script>
     </body>
 </html>
