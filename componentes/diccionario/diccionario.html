@@ -221,7 +221,8 @@
         <script src="../../data.js"></script>
         <script>
             <script>
-    // LÓGICA DE TEMAS 
+    <script>
+    // LÓGICA DE TEMAS (Mantén esto si ya lo tenías para el botón de sol/luna)
     function toggleTheme() {
         const body = document.body;
         const icon = document.getElementById('theme-icon');
@@ -236,7 +237,6 @@
     }
 
     // NUEVO ASISTENTE IA SeñIA
-   <script>
     async function preguntarIA() {
         const input = document.getElementById('ai-input');
         const resultDiv = document.getElementById('ai-result');
@@ -250,46 +250,61 @@
         }
 
         resultDiv.style.display = 'block';
-        resultDiv.innerHTML = '<small>Pensando...</small>';
+        resultDiv.innerHTML = '<small><i class="bi bi-hourglass-split"></i> Pensando...</small>';
         btn.disabled = true;
 
-        const contexto = "Eres un asistente de la app SeñIA. Responde breve sobre Lengua de Señas Mexicana (LSM).";
-        
-        // USA ESTA KEY (Asegúrate que sea válida en Google AI Studio)
+        const contexto = 
+            "Eres un asistente breve y útil de la app SeñIA para aprender Lengua de Señas Mexicana (LSM). " +
+            "Responde SIEMPRE en español, corto, claro y positivo. " +
+            "Si no es sobre LSM, di amablemente que solo ayudas con temas de lengua de señas mexicana.";
+
         const API_KEY = 'AIzaSyDx6MinlSJPnvBirJAKxFWwZulbRY2e7jk';
-        const modelo = 'gemini-1.5-flash'; 
+        const modelo = 'gemini-1.5-flash'; // Nota: Usa flash para mayor velocidad en web
 
         try {
-            // La URL DEBE usar comillas invertidas ` ` para que funcione el ${modelo}
+            // Corregido: Se agregaron las comillas invertidas (backticks) para la URL
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${API_KEY}`;
             
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: contexto + "\n\nPregunta: " + pregunta }] }]
+                    contents: [{ parts: [{ text: contexto + "\n\nPregunta: " + pregunta }] }],
+                    generationConfig: {
+                        maxOutputTokens: 300,
+                        temperature: 0.7
+                    }
                 })
             });
 
-            const data = await response.json();
-            
-            if (data.error) {
-                throw new Error(data.error.message);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
 
-            const texto = data.candidates[0].content.parts[0].text;
+            const data = await response.json();
+            let texto = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'No pude obtener respuesta clara.';
+
+            // Limpieza simple
+            texto = texto.replace(/```/g, '').trim();
             resultDiv.textContent = texto;
 
         } catch (err) {
-            console.error("ERROR DETECTADO:", err);
-            resultDiv.innerHTML = `<span style="color:red">Error: ${err.message}</span>`;
+            console.error(err);
+            resultDiv.innerHTML = '<span class="text-danger">Error al conectar. Intenta de nuevo.</span>';
         } finally {
             btn.disabled = false;
         }
     }
 
-    // Vinculamos el botón manualmente para asegurar que funcione
+    // Configuración de botones y teclado
     document.getElementById('ai-btn').onclick = preguntarIA;
+
+    document.getElementById('ai-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            preguntarIA();
+        }
+    });
 </script>
     </body>
 </html>
