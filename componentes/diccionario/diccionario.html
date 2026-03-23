@@ -5,146 +5,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Diccionario - SeñIA</title>
         <link rel="stylesheet" href="../../style.css" />
-        <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-        />
-        <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-        />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
         <style>
-            /* ========== VARIABLES DE TEMA (MODO OSCURO POR DEFECTO) ========== */
-            :root {
-                --bg-color: #0b2926;
-                --primary-color: #2de0d4;
-                --primary-glow: rgba(45, 224, 212, 0.3);
-                --card-bg: #113b37;
-                --text-main: #ffffff;
-                --text-muted: #8abeb9;
-                --input-bg: #0b2926;
-                --shadow: 0 8px 32px rgba(0,0,0,0.3);
-            }
-
-            /* ========== VARIABLES MODO CLARO ========== */
-            [data-theme="light"] {
-                --bg-color: #f8fafc;
-                --primary-color: #0d9488;
-                --primary-glow: rgba(13, 148, 136, 0.15);
-                --card-bg: #ffffff;
-                --text-main: #0f172a;
-                --text-muted: #64748b;
-                --input-bg: #f1f5f9;
-                --shadow: 0 4px 12px rgba(0,0,0,0.05);
-            }
-
-            body {
-                background-color: var(--bg-color);
-                color: var(--text-main);
-                transition: background-color 0.3s ease, color 0.3s ease;
-                font-family: inherit;
-            }
-
-            /* Header */
-            .page-header {
-                background-color: var(--bg-color);
-                border-bottom: 1px solid var(--primary-glow);
-                padding: 1rem;
-            }
-            .page-header h1 {
-                color: var(--primary-color);
-                font-weight: 700;
-            }
-            .back-btn { color: var(--primary-color) !important; }
-
-            /* Botón Switch de Tema (Superior Derecha) */
-            .theme-toggle {
-                width: 40px;
-                height: 40px;
-                border-radius: 10px;
-                background: var(--card-bg);
-                color: var(--primary-color);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                border: 1px solid var(--primary-glow);
-                transition: all 0.2s;
-            }
-            .theme-toggle:hover {
-                transform: scale(1.05);
-                border-color: var(--primary-color);
-            }
-
-            /* Tarjetas */
-            .cat-card, .word-card {
-                cursor: pointer;
-                transition: all 0.3s ease;
-                border: 2px solid var(--primary-glow);
-                border-radius: 20px;
-                background: var(--card-bg);
-                color: var(--text-main);
-                box-shadow: var(--shadow);
-            }
-            .cat-card:hover, .word-card:hover {
-                transform: translateY(-5px);
-                border-color: var(--primary-color);
-                box-shadow: 0 0 20px var(--primary-glow) !important;
-            }
-            .text-primary { color: var(--primary-color) !important; }
-            .text-muted { color: var(--text-muted) !important; }
-
-            .word-thumb {
-                height: 140px;
-                width: 100%;
-                object-fit: cover;
-                background: #000;
-                border-bottom: 1px solid var(--primary-glow);
-            }
-
-            /* IA Asistente */
-            .ai-minimal {
-                margin: 1rem 0 1.5rem;
-                padding: 1.2rem;
-                background: var(--card-bg);
-                border: 2px solid var(--primary-glow);
-                border-radius: 18px;
-                box-shadow: var(--shadow);
-            }
-            .ai-minimal input {
-                background: var(--input-bg);
-                border: 1px solid var(--primary-glow);
-                color: var(--text-main);
-                border-radius: 10px;
-            }
-            .ai-minimal button {
-                background: var(--primary-color);
-                color: white;
-                font-weight: bold;
-                border-radius: 10px;
-            }
-
-            /* Modal */
-            .modal-content {
-                background-color: var(--bg-color);
-                color: var(--text-main);
-                border-radius: 25px;
-                border: 2px solid var(--primary-color);
-            }
+            :root { --bg-color: #0b2926; --primary-color: #2de0d4; --primary-glow: rgba(45, 224, 212, 0.3); --card-bg: #113b37; --text-main: #ffffff; --text-muted: #8abeb9; --input-bg: #0b2926; --shadow: 0 8px 32px rgba(0,0,0,0.3); }
+            [data-theme="light"] { --bg-color: #f8fafc; --primary-color: #0d9488; --primary-glow: rgba(13, 148, 136, 0.15); --card-bg: #ffffff; --text-main: #0f172a; --text-muted: #64748b; --input-bg: #f1f5f9; --shadow: 0 4px 12px rgba(0,0,0,0.05); }
+            body { background-color: var(--bg-color); color: var(--text-main); transition: background-color 0.3s ease; font-family: sans-serif; }
+            .page-header { background-color: var(--bg-color); border-bottom: 1px solid var(--primary-glow); padding: 1rem; }
+            .theme-toggle { width: 40px; height: 40px; border-radius: 10px; background: var(--card-bg); color: var(--primary-color); display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--primary-glow); }
+            .cat-card, .word-card { cursor: pointer; transition: all 0.3s ease; border: 2px solid var(--primary-glow); border-radius: 20px; background: var(--card-bg); box-shadow: var(--shadow); }
+            .cat-card:hover, .word-card:hover { transform: translateY(-5px); border-color: var(--primary-color); }
+            .word-thumb { height: 140px; width: 100%; object-fit: cover; border-radius: 18px 18px 0 0; border-bottom: 1px solid var(--primary-glow); }
+            .ai-minimal { margin: 1rem 0; padding: 1.2rem; background: var(--card-bg); border: 2px solid var(--primary-glow); border-radius: 18px; }
+            .ai-minimal input { background: var(--input-bg); border: 1px solid var(--primary-glow); color: var(--text-main); }
+            .ai-minimal button { background: var(--primary-color); color: white; font-weight: bold; }
+            .modal-content { background-color: var(--bg-color); color: var(--text-main); border-radius: 25px; border: 2px solid var(--primary-color); }
             .highlight-word { color: var(--primary-color); font-weight: 800; }
-            .tip-box {
-                background-color: var(--primary-glow);
-                color: var(--text-main);
-                padding: 10px;
-                border-radius: 12px;
-                border: 1px solid var(--primary-color);
-            }
-
-            .btn-back-grid {
-                background: var(--card-bg);
-                color: var(--primary-color);
-                border: 1px solid var(--primary-glow);
-            }
         </style>
     </head>
     <body data-theme="dark">
@@ -152,24 +28,18 @@
         <header class="page-header">
             <div class="container d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
-                    <a href="../../caracteristicas.html" class="back-btn me-3">
-                        <i class="bi bi-arrow-left fs-3"></i>
-                    </a>
-                    <h1 class="m-0 fs-4">Diccionario</h1>
+                    <a href="../../caracteristicas.html" class="text-primary me-3"><i class="bi bi-arrow-left fs-3"></i></a>
+                    <h1 class="m-0 fs-4 text-primary">Diccionario</h1>
                 </div>
-                <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">
-                    <i class="bi bi-sun-fill" id="theme-icon"></i>
-                </button>
+                <button class="theme-toggle" onclick="toggleTheme()"><i class="bi bi-sun-fill" id="theme-icon"></i></button>
             </div>
         </header>
 
         <div class="container">
             <div class="ai-minimal">
-                <div class="fw-bold mb-2 text-primary">
-                    <i class="bi bi-stars"></i> Asistente IA LSM
-                </div>
+                <div class="fw-bold mb-2 text-primary"><i class="bi bi-stars"></i> Asistente IA SeñIA</div>
                 <div class="input-group">
-                    <input type="text" id="ai-input" class="form-control shadow-none" placeholder="¿Cómo se dice...?" />
+                    <input type="text" id="ai-input" class="form-control" placeholder="¿Cómo se dice...?" />
                     <button id="ai-btn" class="btn px-4" onclick="preguntarIA()">Preguntar</button>
                 </div>
                 <div id="ai-result" class="mt-2 small text-muted"></div>
@@ -178,20 +48,15 @@
             <div id="view-categories">
                 <div class="text-center mb-4">
                     <h4 class="fw-bold">Explora Categorías</h4>
-                    <p class="small text-muted">Selecciona un tema para aprender señas</p>
+                    <p class="small text-muted">Aprende temas específicos en LSM</p>
                 </div>
                 <div id="categories-container" class="row g-3"></div>
             </div>
 
             <div id="view-words" class="d-none">
                 <div class="d-flex align-items-center mb-3">
-                    <button class="btn btn-back-grid rounded-circle me-3" style="width: 40px; height: 40px" onclick="showCategories()">
-                        <i class="bi bi-arrow-left"></i>
-                    </button>
-                    <div>
-                        <h2 id="cat-title" class="fw-bold m-0 text-primary" style="font-size: 1.5rem"></h2>
-                        <small class="text-muted">Toca para ver la seña</small>
-                    </div>
+                    <button class="btn btn-outline-primary rounded-circle me-3" onclick="showCategories()"><i class="bi bi-arrow-left"></i></button>
+                    <h2 id="cat-title" class="fw-bold m-0 text-primary" style="font-size: 1.5rem"></h2>
                 </div>
                 <div id="words-grid" class="row g-3"></div>
             </div>
@@ -200,18 +65,12 @@
         <div class="modal fade" id="signModal" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content p-3">
-                    <div class="modal-header border-0 pb-0">
-                        <h5 class="modal-title fw-bold">Aprendiendo LSM</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: var(--close-btn-filter)"></button>
-                    </div>
                     <div class="modal-body text-center">
-                        <p class="mb-3">¿Cómo se dice <span id="modalWordName" class="highlight-word"></span>?</p>
+                        <p class="mb-3 fs-5">¿Cómo se dice <span id="modalWordName" class="highlight-word"></span>?</p>
                         <div class="rounded-3 overflow-hidden border border-2 border-primary">
                             <img src="" id="modalImg" class="img-fluid" />
                         </div>
-                        <div class="tip-box mt-3 small">
-                            <i class="bi bi-lightbulb-fill me-1"></i> Intenta repetir el movimiento varias veces.
-                        </div>
+                        <button type="button" class="btn btn-primary mt-3 w-100" data-bs-dismiss="modal">Entendido</button>
                     </div>
                 </div>
             </div>
@@ -220,13 +79,14 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script src="../../data.js"></script>
         <script>
-            // LÓGICA DE TEMAS (OSCURO/CLARO)
+            // CONFIGURACIÓN DE RUTAS
+            const assetsPath = "../../assets/";
+
+            // TEMA
             function toggleTheme() {
                 const body = document.body;
                 const icon = document.getElementById('theme-icon');
-                const isDark = body.getAttribute('data-theme') === 'dark';
-                
-                if (isDark) {
+                if (body.getAttribute('data-theme') === 'dark') {
                     body.setAttribute('data-theme', 'light');
                     icon.classList.replace('bi-sun-fill', 'bi-moon-stars-fill');
                 } else {
@@ -235,23 +95,20 @@
                 }
             }
 
-            // CARGAR DICCIONARIO
-            const viewCats = document.getElementById("view-categories");
+            // CARGAR DICCIONARIO (Solo si dictionary existe en data.js)
             const catsContainer = document.getElementById("categories-container");
-            const viewWords = document.getElementById("view-words");
-            const assetsPath = "../../assets/";
-
-            for (const key in dictionary) {
-                const cat = dictionary[key];
-                const col = document.createElement("div");
-                col.className = "col-6 col-md-4";
-                col.innerHTML = `
-                <div class="cat-card h-100 p-4 text-center" onclick="loadCategory('${key}')">
-                    <div class="fs-1 text-primary mb-2"><i class="bi ${cat.icon}"></i></div>
-                    <h5 class="fw-bold m-0" style="font-size: 1rem;">${cat.title}</h5>
-                    <small class="text-muted">${cat.items.length} palabras</small>
-                </div>`;
-                catsContainer.appendChild(col);
+            if (typeof dictionary !== 'undefined') {
+                for (const key in dictionary) {
+                    const cat = dictionary[key];
+                    const col = document.createElement("div");
+                    col.className = "col-6 col-md-4";
+                    col.innerHTML = `
+                        <div class="cat-card h-100 p-4 text-center" onclick="loadCategory('${key}')">
+                            <div class="fs-1 text-primary mb-2"><i class="bi ${cat.icon}"></i></div>
+                            <h5 class="fw-bold m-0 small">${cat.title}</h5>
+                        </div>`;
+                    catsContainer.appendChild(col);
+                }
             }
 
             function loadCategory(key) {
@@ -259,23 +116,23 @@
                 document.getElementById("cat-title").textContent = cat.title;
                 const grid = document.getElementById("words-grid");
                 grid.innerHTML = "";
-                cat.items.forEach((item) => {
+                cat.items.forEach(item => {
                     const col = document.createElement("div");
                     col.className = "col-6 col-md-4 col-lg-3";
                     col.innerHTML = `
-                    <div class="word-card h-100" onclick="openModal('${item.word}', '${assetsPath + item.sign}')">
-                        <img src="${assetsPath + item.image}" class="word-thumb" onerror="this.src='https://placehold.co/200?text=${item.word}'">
-                        <div class="p-2 text-center fw-bold small">${item.word}</div>
-                    </div>`;
+                        <div class="word-card h-100" onclick="openModal('${item.word}', '${assetsPath + item.sign}')">
+                            <img src="${assetsPath + item.image}" class="word-thumb" onerror="this.src='https://placehold.co/200?text=Error'">
+                            <div class="p-2 text-center fw-bold small">${item.word}</div>
+                        </div>`;
                     grid.appendChild(col);
                 });
-                viewCats.classList.add("d-none");
-                viewWords.classList.remove("d-none");
+                document.getElementById("view-categories").classList.add("d-none");
+                document.getElementById("view-words").classList.remove("d-none");
             }
 
             function showCategories() {
-                viewWords.classList.add("d-none");
-                viewCats.classList.remove("d-none");
+                document.getElementById("view-words").classList.add("d-none");
+                document.getElementById("view-categories").classList.remove("d-none");
             }
 
             function openModal(word, src) {
@@ -284,7 +141,7 @@
                 new bootstrap.Modal(document.getElementById("signModal")).show();
             }
 
-            // IA GEMINI
+            // IA ASISTENTE
             async function preguntarIA() {
                 const input = document.getElementById('ai-input');
                 const resultDiv = document.getElementById('ai-result');
@@ -293,10 +150,11 @@
 
                 if (!pregunta) return;
 
-                resultDiv.innerHTML = '<i class="bi bi-hourglass-split"></i> Consultando...';
+                resultDiv.innerHTML = 'Pensando...';
                 btn.disabled = true;
 
-                const API_KEY = 'AIzaSyD_J8BTp4EdLzUbZED2mdUwnMpgjaCNp5I'; 
+                // ¡Asegúrate de que esta Key sea la tuya!
+                const API_KEY = 'AIzaSyDx6MinlSJPnvBirJAKxFWwZulbRY2e7jk'; 
                 const modelo = 'gemini-1.5-flash';
 
                 try {
@@ -305,11 +163,15 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            contents: [{ parts: [{ text: "Responde brevemente como experto en LSM sobre: " + pregunta }] }]
+                            contents: [{ parts: [{ text: "Eres un experto en LSM. Responde breve: " + pregunta }] }]
                         })
                     });
                     const data = await response.json();
-                    resultDiv.innerText = data.candidates[0].content.parts[0].text;
+                    if(data.candidates) {
+                        resultDiv.innerText = data.candidates[0].content.parts[0].text;
+                    } else {
+                        resultDiv.innerText = "Error en la respuesta de la IA.";
+                    }
                 } catch (err) {
                     resultDiv.innerHTML = '<span class="text-danger">Error de conexión.</span>';
                 } finally {
