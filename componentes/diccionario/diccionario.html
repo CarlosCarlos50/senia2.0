@@ -428,10 +428,7 @@
             // Revisar URL por si viene del buscador
             const params = new URLSearchParams(window.location.search);
             if (params.has("categoria")) loadCategory(params.get("categoria"));
-
-            // =============================================
-            // Asistente IA (tu script adaptado)
-            // =============================================
+            
             async function preguntarIA() {
                 const input = document.getElementById('ai-input');
                 const resultDiv = document.getElementById('ai-result');
