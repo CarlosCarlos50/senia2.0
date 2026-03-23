@@ -220,112 +220,90 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script src="../../data.js"></script>
         <script>
-            // LÓGICA DE TEMAS (OSCURO/CLARO)
-            function toggleTheme() {
-                const body = document.body;
-                const icon = document.getElementById('theme-icon');
-                const isDark = body.getAttribute('data-theme') === 'dark';
-                
-                if (isDark) {
-                    body.setAttribute('data-theme', 'light');
-                    icon.classList.replace('bi-sun-fill', 'bi-moon-stars-fill');
-                } else {
-                    body.setAttribute('data-theme', 'dark');
-                    icon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
-                }
-            }
-
-            // CARGAR DICCIONARIO
-            const viewCats = document.getElementById("view-categories");
-            const catsContainer = document.getElementById("categories-container");
-            const viewWords = document.getElementById("view-words");
-            const assetsPath = "../../assets/"; 
-
-            for (const key in dictionary) {
-                const cat = dictionary[key];
-                const col = document.createElement("div");
-                col.className = "col-6 col-md-4";
-                col.innerHTML = `
-                <div class="cat-card h-100 p-4 text-center" onclick="loadCategory('${key}')">
-                    <div class="fs-1 text-primary mb-2"><i class="bi ${cat.icon}"></i></div>
-                    <h5 class="fw-bold m-0" style="font-size: 1rem;">${cat.title}</h5>
-                    <small class="text-muted">${cat.items.length} palabras</small>
-                </div>`;
-                catsContainer.appendChild(col);
-            }
-
-            function loadCategory(key) {
-                const cat = dictionary[key];
-                document.getElementById("cat-title").textContent = cat.title;
-                const grid = document.getElementById("words-grid");
-                grid.innerHTML = "";
-                cat.items.forEach((item) => {
-                    const col = document.createElement("div");
-                    col.className = "col-6 col-md-4 col-lg-3";
-                    col.innerHTML = `
-                    <div class="word-card h-100" onclick="openModal('${item.word}', '${assetsPath + item.sign}')">
-                        <img src="${assetsPath + item.image}" class="word-thumb" onerror="this.src='https://placehold.co/200?text=${item.word}'">
-                        <div class="p-2 text-center fw-bold small">${item.word}</div>
-                    </div>`;
-                    grid.appendChild(col);
-                });
-                viewCats.classList.add("d-none");
-                viewWords.classList.remove("d-none");
-            }
-
-            function showCategories() {
-                viewWords.classList.add("d-none");
-                viewCats.classList.remove("d-none");
-            }
-
-            function openModal(word, src) {
-                document.getElementById("modalWordName").innerText = `"${word}"`;
-                document.getElementById("modalImg").src = src;
-                new bootstrap.Modal(document.getElementById("signModal")).show();
-            }
-
-           async function preguntarIA() {
-    const input = document.getElementById('ai-input');
-    const resultDiv = document.getElementById('ai-result');
-    const btn = document.getElementById('ai-btn');
-    const pregunta = input.value.trim();
-
-    if (!pregunta) return;
-
-    resultDiv.innerHTML = '<i class="bi bi-hourglass-split"></i> Consultando a la IA...';
-    btn.disabled = true;
-
-    // IMPORTANTE: Debes usar una API KEY válida de Google AI Studio
-    const API_KEY = 'AIzaSyA3KaiZojUEhScR3aBB5_2Oo3prlFpnlsQ'; 
-    const modelo = 'gemini-1.5-flash';
-
-    try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${API_KEY}`;
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ 
-                    parts: [{ text: "Eres un experto en Lengua de Señas Mexicana (LSM). Responde de forma breve y clara a esta duda: " + pregunta }] 
-                }]
-            })
-        });
-
-        const data = await response.json();
-
-        if (data.candidates && data.candidates[0].content.parts[0].text) {
-            resultDiv.innerText = data.candidates[0].content.parts[0].text;
+            <script>
+    // LÓGICA DE TEMAS (Mantén esto si ya lo tenías para el botón de sol/luna)
+    function toggleTheme() {
+        const body = document.body;
+        const icon = document.getElementById('theme-icon');
+        const isDark = body.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+            body.setAttribute('data-theme', 'light');
+            icon.classList.replace('bi-sun-fill', 'bi-moon-stars-fill');
         } else {
-            resultDiv.innerText = "La IA no pudo generar una respuesta ahora.";
+            body.setAttribute('data-theme', 'dark');
+            icon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
         }
-    } catch (err) {
-        console.error(err);
-        resultDiv.innerHTML = '<span class="text-danger">Error: Verifica tu conexión o la API Key.</span>';
-    } finally {
-        btn.disabled = false;
     }
-}
-        </script>
+
+    // NUEVO ASISTENTE IA SeñIA
+    async function preguntarIA() {
+        const input = document.getElementById('ai-input');
+        const resultDiv = document.getElementById('ai-result');
+        const btn = document.getElementById('ai-btn');
+        const pregunta = input.value.trim();
+
+        if (!pregunta) {
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Escribe una pregunta sobre señas 😊';
+            return;
+        }
+
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<small><i class="bi bi-hourglass-split"></i> Pensando...</small>';
+        btn.disabled = true;
+
+        const contexto = 
+            "Eres un asistente breve y útil de la app SeñIA para aprender Lengua de Señas Mexicana (LSM). " +
+            "Responde SIEMPRE en español, corto, claro y positivo. " +
+            "Si no es sobre LSM, di amablemente que solo ayudas con temas de lengua de señas mexicana.";
+
+        const API_KEY = 'AIzaSyDx6MinlSJPnvBirJAKxFWwZulbRY2e7jk';
+        const modelo = 'gemini-1.5-flash'; // Nota: Usa flash para mayor velocidad en web
+
+        try {
+            // Corregido: Se agregaron las comillas invertidas (backticks) para la URL
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${API_KEY}`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: contexto + "\n\nPregunta: " + pregunta }] }],
+                    generationConfig: {
+                        maxOutputTokens: 300,
+                        temperature: 0.7
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            let texto = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'No pude obtener respuesta clara.';
+
+            // Limpieza simple
+            texto = texto.replace(/```/g, '').trim();
+            resultDiv.textContent = texto;
+
+        } catch (err) {
+            console.error(err);
+            resultDiv.innerHTML = '<span class="text-danger">Error al conectar. Intenta de nuevo.</span>';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    // Configuración de botones y teclado
+    document.getElementById('ai-btn').onclick = preguntarIA;
+
+    document.getElementById('ai-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            preguntarIA();
+        }
+    });
+</script>
     </body>
 </html>
