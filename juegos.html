@@ -315,12 +315,37 @@
         });
 
         // ==================== MINIJUEGO ====================
+        // Base de datos inicial
         const preguntasDB = {
             alfabeto: [
-                { img: "assets/quiz_A.png", palabra: "A", opciones: ["A", "B", "C", "D"] },
-                { img: "assets/quiz_B.png", palabra: "B", opciones: ["B", "C", "D", "A"] },
-                { img: "assets/quiz_C.png", palabra: "C", opciones: ["C", "B", "A", "D"] },
-                { img: "assets/quiz_D.png", palabra: "D", opciones: ["D", "C", "B", "A"] }
+                { img: "assets/quiz_A.png", palabra: "A" },
+                { img: "assets/quiz_B.png", palabra: "B" },
+                { img: "assets/quiz_C.png", palabra: "C" },
+                { img: "assets/quiz_D.png", palabra: "D" },
+                { img: "assets/quiz_E.png", palabra: "E" },
+                { img: "assets/quiz_F.png", palabra: "F" },
+                { img: "assets/quiz_G.png", palabra: "G" },
+                { img: "assets/quiz_H.png", palabra: "H" },
+                { img: "assets/quiz_I.png", palabra: "I" },
+                { img: "assets/quiz_J.png", palabra: "J" },
+                { img: "assets/quiz_K.png", palabra: "K" },
+                { img: "assets/quiz_L.png", palabra: "L" },
+                { img: "assets/quiz_M.png", palabra: "M" },
+                { img: "assets/quiz_N.png", palabra: "N" },
+                { img: "assets/quiz_Ñ.png", palabra: "Ñ" },
+                { img: "assets/quiz_O.png", palabra: "O" },
+                { img: "assets/quiz_P.png", palabra: "P" },
+                { img: "assets/quiz_Q.png", palabra: "Q" },
+                { img: "assets/quiz_R.png", palabra: "R" },
+                { img: "assets/quiz_S.png", palabra: "S" },
+                { img: "assets/quiz_T.png", palabra: "T" },
+                { img: "assets/quiz_U.png", palabra: "U" },
+                { img: "assets/quiz_V.png", palabra: "V" },
+                { img: "assets/quiz_W.png", palabra: "W" },
+                { img: "assets/quiz_X.png", palabra: "X" },
+                { img: "assets/quiz_Y.png", palabra: "Y" },
+                { img: "assets/quiz_Z.png", palabra: "Z" }
+
             ],
             numeros: [
                 { img: "assets/quiz_1.jpeg", palabra: "1", opciones: ["1", "2", "3", "4"] },
@@ -341,6 +366,32 @@
                 { img: "assets/quiz_porfavor.jpg", palabra: "Por favor", opciones: ["Por favor", "Gracias", "Hola", "Adiós"] }
             ]
         };
+
+        // Función para generar opciones aleatorias para el abecedario
+        function generarOpcionesAlfabeto(letraCorrecta) {
+            const todasLasLetras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+            // Filtrar la letra correcta
+            let otras = todasLasLetras.filter(l => l !== letraCorrecta);
+            // Mezclar aleatoriamente y tomar las primeras 3
+            for (let i = otras.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [otras[i], otras[j]] = [otras[j], otras[i]];
+            }
+            const opciones = [letraCorrecta, ...otras.slice(0, 3)];
+            // Mezclar las opciones para que la correcta no esté siempre en la misma posición
+            for (let i = opciones.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opciones[i], opciones[j]] = [opciones[j], opciones[i]];
+            }
+            return opciones;
+        }
+
+        // Reemplazar las preguntas del abecedario con opciones aleatorias
+        preguntasDB.alfabeto = preguntasDB.alfabeto.map(p => ({
+            img: p.img,
+            palabra: p.palabra,
+            opciones: generarOpcionesAlfabeto(p.palabra)
+        }));
 
         let categoriaActual = "alfabeto";
         let preguntas = [...preguntasDB.alfabeto];
@@ -469,4 +520,4 @@
         mostrarPregunta();
     </script>
 </body>
-</html>s
+</html>
