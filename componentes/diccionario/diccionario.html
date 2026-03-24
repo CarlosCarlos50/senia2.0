@@ -44,35 +44,51 @@
             transition: background-color var(--transition-speed), color var(--transition-speed);
         }
 
-        /* Header con el mismo estilo que el alfabeto */
+        /* Header con el mismo estilo que el index */
         .page-header {
+            padding: 30px 20px 10px;
             display: flex;
             align-items: center;
-            padding: 20px 20px 10px 20px;
-            border-bottom: 1px solid var(--primary-glow);
-            margin-bottom: 20px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
             background-color: var(--bg-color);
+            border-bottom: 1px solid var(--primary-glow);
             transition: background-color var(--transition-speed), border var(--transition-speed);
         }
 
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-area img {
+            height: 70px;
+            width: auto;
+        }
+
+        .page-header p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Flecha de volver - SIN círculo blanco */
         .back-btn {
-            color: var(--primary);
-            font-size: 1.5rem;
+            color: var(--primary) !important;
+            font-size: 2rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
             text-decoration: none;
-            margin-right: 15px;
-            transition: transform 0.2s;
         }
 
         .back-btn:hover {
             transform: translateX(-5px);
-            color: var(--primary);
+            color: var(--primary) !important;
             opacity: 0.8;
-        }
-
-        .page-header h1 {
-            margin: 0;
-            font-size: 1.5rem;
-            color: var(--primary);
         }
 
         /* 3. BOTÓN DE TEMA (igual al del alfabeto) */
@@ -228,10 +244,12 @@
     </button>
 
     <header class="page-header">
-        <a href="../../index.html" class="back-btn">
-            <i class="bi bi-arrow-left"></i>
-        </a>
-        <h1>Diccionario</h1>
+        <div class="logo-area">
+            <a href="../../index.html" class="back-btn me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <img src="../../155a4c37-5a91-4ec8-9a18-f3f6373fd043_inspyrenet.png" alt="Logo SeñIA">
+        </div>
     </header>
 
     <main>
