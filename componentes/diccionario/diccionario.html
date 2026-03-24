@@ -70,7 +70,7 @@
             font-size: 0.95rem;
         }
 
-        /* Flecha de volver - SIN círculo blanco, color primario sólido */
+        /* Flecha de volver - SIN círculo blanco */
         .back-btn {
             color: var(--primary) !important;
             font-size: 2rem;
@@ -85,27 +85,6 @@
             transform: translateX(-5px);
             color: var(--primary) !important;
             opacity: 0.8;
-        }
-
-        /* Botón de tema (igual que el index) */
-        .theme-toggle {
-            background: var(--card-bg);
-            color: var(--primary);
-            border: 1px solid var(--primary-glow);
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-        }
-
-        .theme-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 15px var(--primary-glow);
         }
 
         /* Tarjetas de Categoría */
@@ -126,7 +105,7 @@
             box-shadow: 0 0 20px var(--primary-glow) !important;
         }
 
-        /* Tarjetas de Palabras */
+        /* Tarjetas de Palabras - Ahora muestran la SEÑA */
         .word-card {
             cursor: pointer;
             transition: all 0.3s ease;
@@ -149,10 +128,10 @@
         }
 
         .word-thumb {
-            height: 140px;
+            height: 180px;
             width: 100%;
             object-fit: cover;
-            background: #000;
+            background: #1a2e2c;
             border-bottom: 1px solid var(--primary-glow);
         }
 
@@ -223,10 +202,6 @@
 </head>
 <body data-theme="dark">
 
-    <button class="theme-toggle" id="theme-btn" style="position: fixed; top: 25px; right: 20px; z-index: 1000;">
-        <i class="bi bi-sun-fill" id="theme-icon"></i>
-    </button>
-
     <header class="page-header">
         <div class="logo-area">
             <a href="../../index.html" class="back-btn me-3">
@@ -234,12 +209,11 @@
             </a>
             <img src="../../155a4c37-5a91-4ec8-9a18-f3f6373fd043_inspyrenet.png" alt="Logo SeñIA">
         </div>
-        
     </header>
 
     <main>
         <div class="container-custom">
-            <!-- 1. Vista Categorías -->
+            <!-- Vista Categorías -->
             <div id="view-categories">
                 <div class="text-center mb-4">
                     <h2 class="fw-bold" style="color: var(--primary); font-size: 1.8rem;">
@@ -255,7 +229,7 @@
                 </div>
             </div>
 
-            <!-- 2. Vista Palabras -->
+            <!-- Vista Palabras -->
             <div id="view-words" class="d-none">
                 <div class="d-flex align-items-center mb-4">
                     <button
@@ -271,7 +245,7 @@
                             class="fw-bold m-0"
                             style="color: var(--primary); font-size: 1.6rem;"
                         ></h2>
-                        <small class="text-muted">Toca una imagen para ver la seña</small>
+                        <small class="text-muted">Toca la imagen para ver la seña más grande</small>
                     </div>
                 </div>
 
@@ -299,7 +273,7 @@
                     </p>
 
                     <div class="rounded-3 overflow-hidden border border-2" style="border-color: var(--primary);">
-                        <img src="" id="modalImg" class="img-fluid" style="max-height: 350px;" />
+                        <img src="" id="modalImg" class="img-fluid" style="max-height: 450px; width: 100%; object-fit: contain;" />
                     </div>
 
                     <div class="tip-box">
@@ -320,21 +294,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../data.js"></script>
     <script>
-        // Toggle tema (mismo que el index)
-        const themeBtn = document.getElementById('theme-btn');
-        const themeIcon = document.getElementById('theme-icon');
-        const body = document.body;
-        
-        themeBtn.addEventListener('click', () => {
-            if (body.getAttribute('data-theme') === 'light') {
-                body.removeAttribute('data-theme');
-                themeIcon.classList.replace('bi-sun-fill', 'bi-moon-stars-fill');
-            } else {
-                body.setAttribute('data-theme', 'light');
-                themeIcon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
-            }
-        });
-
         const viewCats = document.getElementById("view-categories");
         const catsContainer = document.getElementById("categories-container");
         const viewWords = document.getElementById("view-words");
@@ -364,12 +323,13 @@
             cat.items.forEach((item) => {
                 const col = document.createElement("div");
                 col.className = "col-6 col-md-4 col-lg-3";
-                const imgSrc = assetsPath + item.image;
+                // IMPORTANTE: Usamos la imagen de la SEÑA (item.sign) no la ilustrativa
+                const signSrc = assetsPath + item.sign;
 
                 col.innerHTML = `
-                    <div class="card word-card h-100" onclick="openModal('${item.word}', '${assetsPath + item.sign}')">
+                    <div class="card word-card h-100" onclick="openModal('${item.word}', '${signSrc}')">
                         <div style="position: relative;">
-                            <img src="${imgSrc}" class="word-thumb" onerror="this.src='https://placehold.co/200?text=Sin+Imagen'">
+                            <img src="${signSrc}" class="word-thumb" onerror="this.src='https://placehold.co/300x180?text=Cargando...'">
                             <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.6); border-radius: 50%; padding: 6px; backdrop-filter: blur(2px);">
                                 <i class="bi bi-eye-fill text-white fs-5"></i>
                             </div>
