@@ -10,6 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     
     <style>
+        /* 1. VARIABLES DE COLOR (MODO OSCURO POR DEFECTO) */
         :root {
             --bg-color: #0b2926;
             --primary: #2de0d4;
@@ -19,8 +20,10 @@
             --card-bg: #113b37;
             --nav-bg: #071f1c;
             --shadow: 0 8px 32px rgba(0,0,0,0.3);
+            --transition-speed: 0.4s;
         }
 
+        /* 2. VARIABLES PARA MODO CLARO */
         [data-theme="light"] {
             --bg-color: #f0f4f4;
             --primary: #1a9e95;
@@ -35,6 +38,378 @@
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             background-color: var(--bg-color);
+            margin: 0;
+            color: var(--text-main);
+            overflow-x: hidden;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        /* Header con el mismo estilo que el alfabeto */
+        .page-header {
+            display: flex;
+            align-items: center;
+            padding: 20px 20px 10px 20px;
+            border-bottom: 1px solid var(--primary-glow);
+            margin-bottom: 20px;
+            background-color: var(--bg-color);
+            transition: background-color var(--transition-speed), border var(--transition-speed);
+        }
+
+        .back-btn {
+            color: var(--primary);
+            font-size: 1.5rem;
+            text-decoration: none;
+            margin-right: 15px;
+            transition: transform 0.2s;
+        }
+
+        .back-btn:hover {
+            transform: translateX(-5px);
+            color: var(--primary);
+            opacity: 0.8;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        /* 3. BOTÓN DE TEMA (igual al del alfabeto) */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 9999;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        /* Tarjetas de Categoría */
+        .cat-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid var(--primary-glow);
+            border-radius: 20px;
+            background: var(--card-bg);
+            color: var(--text-main);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .cat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px var(--primary-glow) !important;
+        }
+
+        /* Tarjetas de Palabras - Ahora muestran la SEÑA */
+        .word-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid var(--primary-glow);
+            border-radius: 20px;
+            background: var(--card-bg);
+            color: var(--text-main);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .word-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px var(--primary-glow) !important;
+        }
+
+        .word-card:active {
+            transform: scale(0.98);
+        }
+
+        .word-thumb {
+            height: 180px;
+            width: 100%;
+            object-fit: cover;
+            background: #1a2e2c;
+            border-bottom: 1px solid var(--primary-glow);
+        }
+
+        .text-primary { color: var(--primary) !important; }
+        .text-muted { color: var(--text-muted) !important; }
+
+        /* Modal */
+        .modal-content {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            border-radius: 25px;
+            border: 2px solid var(--primary);
+            box-shadow: var(--shadow);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        .modal-header .btn-close {
+            background-color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        .instruction-text {
+            font-size: 1.1rem;
+            color: var(--text-main);
+            margin-bottom: 15px;
+        }
+
+        .highlight-word {
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        .tip-box {
+            background-color: var(--primary-glow);
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--primary);
+            font-size: 0.9rem;
+            margin-top: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: #000;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background-color: #24c0b4;
+            border-color: #24c0b4;
+        }
+
+        .btn-back-grid {
+            background: var(--card-bg);
+            color: var(--primary);
+            border: 1px solid var(--primary-glow);
+            transition: background-color var(--transition-speed), border var(--transition-speed);
+        }
+
+        main {
+            padding: 10px 20px 100px;
+        }
+
+        .container-custom {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 4. BOTÓN DE TEMA (igual al del alfabeto) -->
+    <button class="theme-toggle" id="theme-btn">
+        <i class="bi bi-moon-stars-fill" id="theme-icon"></i>
+    </button>
+
+    <header class="page-header">
+        <a href="../../index.html" class="back-btn">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h1>Diccionario</h1>
+    </header>
+
+    <main>
+        <div class="container-custom">
+            <!-- Vista Categorías -->
+            <div id="view-categories">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold" style="color: var(--primary); font-size: 1.8rem;">
+                        ¿Qué quieres aprender hoy?
+                    </h2>
+                    <p class="text-muted">
+                        Selecciona un tema para ver las palabras disponibles.
+                    </p>
+                </div>
+
+                <div id="categories-container" class="row g-3">
+                    <!-- Se llena con JS -->
+                </div>
+            </div>
+
+            <!-- Vista Palabras -->
+            <div id="view-words" class="d-none">
+                <div class="d-flex align-items-center mb-4">
+                    <button
+                        class="btn btn-back-grid rounded-circle me-3 shadow-sm"
+                        style="width: 44px; height: 44px;"
+                        onclick="showCategories()"
+                    >
+                        <i class="bi bi-arrow-left"></i>
+                    </button>
+                    <div>
+                        <h2
+                            id="cat-title"
+                            class="fw-bold m-0"
+                            style="color: var(--primary); font-size: 1.6rem;"
+                        ></h2>
+                        <small class="text-muted">Toca la imagen para ver la seña más grande</small>
+                    </div>
+                </div>
+
+                <div id="words-grid" class="row g-3"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Educativo -->
+    <div class="modal fade" id="signModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-4">
+                <div class="modal-header border-0 pb-2">
+                    <h5 class="modal-title fw-bold">Aprendiendo LSM</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body text-center">
+                    <p class="instruction-text mb-3">
+                        ¿Cómo se dice
+                        <span id="modalWordName" class="highlight-word">...</span>?
+                    </p>
+                    <p class="text-muted small mb-3">
+                        Observa la imagen y replica el movimiento:
+                    </p>
+
+                    <div class="rounded-3 overflow-hidden border border-2" style="border-color: var(--primary);">
+                        <img src="" id="modalImg" class="img-fluid" style="max-height: 450px; width: 100%; object-fit: contain;" />
+                    </div>
+
+                    <div class="tip-box">
+                        <i class="bi bi-lightbulb-fill me-1"></i>
+                        <strong>Tip:</strong> Intenta hacerlo frente a un espejo.
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 justify-content-center pt-2">
+                    <button type="button" class="btn btn-primary rounded-pill px-5 py-2" data-bs-dismiss="modal">
+                        ¡Entendido!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../data.js"></script>
+    <script>
+        // 1. GESTIÓN DEL MODO OSCURO (PERSISTENCIA) - IGUAL QUE EN EL ALFABETO
+        const themeBtn = document.getElementById('theme-btn');
+        const themeIcon = document.getElementById('theme-icon');
+        const body = document.body;
+
+        if (localStorage.getItem('theme') === 'light') {
+            body.setAttribute('data-theme', 'light');
+            themeIcon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
+        }
+
+        themeBtn.addEventListener('click', () => {
+            if (body.getAttribute('data-theme') === 'light') {
+                body.removeAttribute('data-theme');
+                themeIcon.classList.replace('bi-sun-fill', 'bi-moon-stars-fill');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.setAttribute('data-theme', 'light');
+                themeIcon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // ---------- FUNCIONALIDAD DEL DICCIONARIO ----------
+        const viewCats = document.getElementById("view-categories");
+        const catsContainer = document.getElementById("categories-container");
+        const viewWords = document.getElementById("view-words");
+        const assetsPath = "../../";
+
+        // Cargar Categorías
+        for (const key in dictionary) {
+            const cat = dictionary[key];
+            const col = document.createElement("div");
+            col.className = "col-6 col-md-4";
+            col.innerHTML = `
+                <div class="card cat-card h-100 p-3 text-center" onclick="loadCategory('${key}')">
+                    <div class="fs-1 text-primary mb-3"><i class="bi ${cat.icon}"></i></div>
+                    <h5 class="fw-bold m-0" style="font-size: 1.1rem;">${cat.title}</h5>
+                    <small class="text-muted" style="font-size: 0.85rem;">${cat.items.length} palabras</small>
+                </div>
+            `;
+            catsContainer.appendChild(col);
+        }
+
+        function loadCategory(key) {
+            const cat = dictionary[key];
+            document.getElementById("cat-title").textContent = cat.title;
+            const grid = document.getElementById("words-grid");
+            grid.innerHTML = "";
+
+            cat.items.forEach((item) => {
+                const col = document.createElement("div");
+                col.className = "col-6 col-md-4 col-lg-3";
+                const signSrc = assetsPath + item.sign;
+
+                col.innerHTML = `
+                    <div class="card word-card h-100" onclick="openModal('${item.word}', '${signSrc}')">
+                        <div style="position: relative;">
+                            <img src="${signSrc}" class="word-thumb" onerror="this.src='https://placehold.co/300x180?text=Cargando...'">
+                            <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.6); border-radius: 50%; padding: 6px; backdrop-filter: blur(2px);">
+                                <i class="bi bi-eye-fill text-white fs-5"></i>
+                            </div>
+                        </div>
+                        <div class="card-body p-2 text-center">
+                            <strong class="small fw-bold" style="color: var(--text-main);">${item.word}</strong>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(col);
+            });
+
+            viewCats.classList.add("d-none");
+            viewWords.classList.remove("d-none");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showCategories() {
+            viewWords.classList.add("d-none");
+            viewCats.classList.remove("d-none");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function openModal(word, src) {
+            document.getElementById("modalWordName").innerText = `"${word}"`;
+            document.getElementById("modalImg").src = src;
+            new bootstrap.Modal(document.getElementById("signModal")).show();
+        }
+
+        // Revisar URL por si viene del buscador
+        const params = new URLSearchParams(window.location.search);
+        if (params.has("categoria")) loadCategory(params.get("categoria"));
+    </script>
+</body>
+</html>            background-color: var(--bg-color);
             margin: 0;
             color: var(--text-main);
             overflow-x: hidden;
