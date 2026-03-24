@@ -119,32 +119,49 @@
         .game-card h2 { margin: 0 0 5px; font-size: 1.5rem; color: var(--primary); }
         .game-card p { margin: 0 0 15px; font-size: 0.9rem; color: var(--text-muted); }
 
+        /* Estilos mejorados para las estadísticas */
         .game-header {
             display: flex;
             justify-content: space-between;
-            align-items: baseline;
+            align-items: center;
             flex-wrap: wrap;
-            margin-bottom: 20px;
-            gap: 10px;
+            gap: 20px;
+            margin-bottom: 25px;
         }
         .game-stats {
             display: flex;
             gap: 20px;
         }
-        .game-stats span {
+        .stat-card {
             background: var(--bg-color);
-            padding: 8px 15px;
-            border-radius: 30px;
+            border-radius: 20px;
+            padding: 8px 20px;
+            text-align: center;
+            border: 1px solid var(--primary-glow);
+            min-width: 100px;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        .stat-value {
+            font-size: 1.8rem;
             font-weight: bold;
             color: var(--primary);
+            line-height: 1;
         }
         .level-badge {
             background: var(--primary);
             color: #000;
-            padding: 5px 15px;
-            border-radius: 30px;
+            padding: 8px 20px;
+            border-radius: 40px;
             font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 0 12px var(--primary-glow);
         }
+
         .question-area {
             text-align: center;
             margin: 25px 0;
@@ -156,6 +173,11 @@
             border-radius: 20px;
             background: var(--bg-color);
             margin-bottom: 20px;
+            transition: opacity 0.3s ease-in-out;
+            opacity: 1;
+        }
+        .question-img.fade-out {
+            opacity: 0;
         }
         .options {
             display: flex;
@@ -263,8 +285,14 @@
 
                 <div class="game-header">
                     <div class="game-stats">
-                        <span>🏆 Puntos: <span id="puntos">0</span></span>
-                        <span>🎯 Aciertos consecutivos: <span id="aciertos">0</span></span>
+                        <div class="stat-card">
+                            <div class="stat-label">🏆 PUNTOS</div>
+                            <div class="stat-value" id="puntos">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">🎯 ACIERTOS CONSECUTIVOS</div>
+                            <div class="stat-value" id="aciertos">0</div>
+                        </div>
                     </div>
                     <div class="level-badge" id="levelBadge">Nivel 1</div>
                 </div>
@@ -370,15 +398,12 @@
         // Función para generar opciones aleatorias para el abecedario
         function generarOpcionesAlfabeto(letraCorrecta) {
             const todasLasLetras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-            // Filtrar la letra correcta
             let otras = todasLasLetras.filter(l => l !== letraCorrecta);
-            // Mezclar aleatoriamente y tomar las primeras 3
             for (let i = otras.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [otras[i], otras[j]] = [otras[j], otras[i]];
             }
             const opciones = [letraCorrecta, ...otras.slice(0, 3)];
-            // Mezclar las opciones para que la correcta no esté siempre en la misma posición
             for (let i = opciones.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [opciones[i], opciones[j]] = [opciones[j], opciones[i]];
@@ -386,7 +411,6 @@
             return opciones;
         }
 
-        // Reemplazar las preguntas del abecedario con opciones aleatorias
         preguntasDB.alfabeto = preguntasDB.alfabeto.map(p => ({
             img: p.img,
             palabra: p.palabra,
@@ -441,8 +465,21 @@
                 preguntaActualIndex = 0;
             }
             preguntaActual = preguntas[preguntaActualIndex];
-            preguntaImg.src = preguntaActual.img;
-            preguntaImg.onerror = () => { preguntaImg.src = "https://placehold.co/200x200/0b2926/2de0d4?text=Seña"; };
+            
+            // Transición: desvanecer imagen
+            preguntaImg.classList.add('fade-out');
+            setTimeout(() => {
+                preguntaImg.src = preguntaActual.img;
+                preguntaImg.onerror = () => { preguntaImg.src = "https://placehold.co/200x200/0b2926/2de0d4?text=Seña"; };
+                preguntaImg.onload = () => {
+                    preguntaImg.classList.remove('fade-out');
+                };
+                // Si la imagen ya está en caché, el evento onload puede no dispararse; forzar remoción después de un breve tiempo
+                setTimeout(() => {
+                    preguntaImg.classList.remove('fade-out');
+                }, 200);
+            }, 200);
+            
             document.getElementById("preguntaTexto").textContent = "¿Qué seña es esta?";
             opcionesDiv.innerHTML = "";
             preguntaActual.opciones.forEach(op => {
