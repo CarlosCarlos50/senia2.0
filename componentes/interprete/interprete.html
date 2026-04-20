@@ -695,46 +695,53 @@
       return distancia < 0.06 ? "U" : "V";
     }
 
-    // ==================== EXTRACCIÓN DE 135 PUNTOS ====================
-    function extraerLandmarks135(handsResult, faceResult) {
-      let landmarks = [];
-      // Manos (hasta 2)
-      let handsDetected = [];
-      if (handsResult.multiHandLandmarks) {
-        for (let hand of handsResult.multiHandLandmarks) {
-          let singleHand = [];
-          for (let lm of hand.landmark) {
-            singleHand.push(lm.x, lm.y, lm.z);
-          }
-          handsDetected.push(singleHand);
-        }
+function extraerLandmarks135(handsResult, faceResult) {
+  let landmarks = [];
+
+  // Manos
+  let handsDetected = [];
+  if (handsResult.multiHandLandmarks) {
+    for (let hand of handsResult.multiHandLandmarks) {
+      let singleHand = [];
+      for (let lm of hand.landmark) {
+        singleHand.push(lm.x, lm.y, lm.z);
       }
-      if (handsDetected.length === 2) {
-        landmarks.push(...handsDetected[0]);
-        landmarks.push(...handsDetected[1]);
-      } else if (handsDetected.length === 1) {
-        landmarks.push(...handsDetected[0]);
-        landmarks.push(...new Array(63).fill(0));
-      } else {
-        landmarks.push(...new Array(126).fill(0));
-      }
-      // Cara (3 puntos: nariz, ojo izquierdo, ojo derecho)
-      const faceIndices = [1, 33, 263];
-      if (faceResult.multiFaceLandmarks && faceResult.multiFaceLandmarks.length > 0) {
-        const face = faceResult.multiFaceLandmarks[0];
-        for (let idx of faceIndices) {
-          const lm = face.landmark[idx];
-          landmarks.push(lm.x, lm.y, lm.z);
-        }
-      } else {
-        landmarks.push(...new Array(9).fill(0));
-      }
-      if (landmarks.length !== 135) {
-        console.warn("Landmarks length incorrecto:", landmarks.length);
-        return new Array(135).fill(0);
-      }
-      return landmarks;
+      handsDetected.push(singleHand);
     }
+  }
+  if (handsDetected.length === 2) {
+    landmarks.push(...handsDetected[0]);
+    landmarks.push(...handsDetected[1]);
+  } else if (handsDetected.length === 1) {
+    landmarks.push(...handsDetected[0]);
+    landmarks.push(...new Array(63).fill(0));
+  } else {
+    landmarks.push(...new Array(126).fill(0));
+  }
+
+  // Cara (3 puntos: nariz, ojo izquierdo, ojo derecho)
+  const faceIndices = [1, 33, 263];
+  if (faceResult.multiFaceLandmarks && faceResult.multiFaceLandmarks.length > 0) {
+    const face = faceResult.multiFaceLandmarks[0];
+    // Verificar que face sea un array y tenga suficientes puntos
+    if (face && face.length > Math.max(...faceIndices)) {
+      for (let idx of faceIndices) {
+        const lm = face[idx];  // 🔥 CORRECCIÓN: face es un array, no tiene .landmark
+        landmarks.push(lm.x, lm.y, lm.z);
+      }
+    } else {
+      landmarks.push(...new Array(9).fill(0));
+    }
+  } else {
+    landmarks.push(...new Array(9).fill(0));
+  }
+
+  if (landmarks.length !== 135) {
+    console.warn("Landmarks length incorrecto:", landmarks.length);
+    return new Array(135).fill(0);
+  }
+  return landmarks;
+}
 
     // ==================== PROCESAMIENTO DE PREDICCIÓN ====================
     function procesarPrediccion(letra) {
