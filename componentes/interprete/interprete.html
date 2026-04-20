@@ -645,12 +645,16 @@
         if (handsResult && handsResult.multiHandLandmarks) {
           for (let hand of handsResult.multiHandLandmarks) {
             let singleHand = [];
-            for (let lm of hand.landmark) {
+            // La API legacy de MediaPipe Hands puede devolver
+            // el array directamente o con propiedad .landmark
+            const lmList = (hand.landmark) ? hand.landmark : hand;
+            for (let lm of lmList) {
               singleHand.push(lm.x, lm.y, lm.z);
             }
             handsDetected.push(singleHand);
           }
         }
+
         if (handsDetected.length >= 2) {
           landmarks.push(...handsDetected[0]);
           landmarks.push(...handsDetected[1]);
@@ -662,25 +666,36 @@
         }
 
         // — Cara: nariz(1), ojo izq(33), ojo der(263) = 9 puntos —
-        // IMPORTANTE: MediaPipe FaceMesh JS usa .landmark (singular)
+        // La API legacy de MediaPipe FaceMesh devuelve multiFaceLandmarks[0]
+        // como array plano: acceso directo face[index], NO face.landmark[index]
         const faceIndices = [1, 33, 263];
         let facePoints = new Array(9).fill(0);
-        if (
-          faceResult &&
-          faceResult.multiFaceLandmarks &&
-          faceResult.multiFaceLandmarks.length > 0
-        ) {
-          const face = faceResult.multiFaceLandmarks[0];
-          if (face && face.landmark && face.landmark.length > 263) {
-            for (let i = 0; i < faceIndices.length; i++) {
-              const lm = face.landmark[faceIndices[i]];
-              if (lm) {
-                facePoints[i * 3]     = lm.x;
-                facePoints[i * 3 + 1] = lm.y;
-                facePoints[i * 3 + 2] = lm.z;
+        try {
+          if (
+            faceResult &&
+            faceResult.multiFaceLandmarks &&
+            faceResult.multiFaceLandmarks.length > 0
+          ) {
+            const face = faceResult.multiFaceLandmarks[0];
+            // Soporte para ambos formatos posibles de la API
+            const lmArray = Array.isArray(face)
+              ? face
+              : (face.landmark || face);
+            if (lmArray && lmArray.length > 263) {
+              for (let i = 0; i < faceIndices.length; i++) {
+                const lm = lmArray[faceIndices[i]];
+                if (lm && typeof lm.x === "number") {
+                  facePoints[i * 3]     = lm.x;
+                  facePoints[i * 3 + 1] = lm.y;
+                  facePoints[i * 3 + 2] = lm.z;
+                }
               }
             }
           }
+        } catch (e) {
+          // Si falla la cara, continuamos con ceros (no bloqueamos la detección de manos)
+          console.warn("⚠️ Error extrayendo landmarks de cara:", e.message);
+          facePoints = new Array(9).fill(0);
         }
         landmarks.push(...facePoints);
 
@@ -690,6 +705,15 @@
           return new Array(135).fill(0);
         }
         return landmarks;
+      }
+
+      // Helper: ¿hay al menos una mano visible?
+      function hayMano(handsResult) {
+        return (
+          handsResult &&
+          handsResult.multiHandLandmarks &&
+          handsResult.multiHandLandmarks.length > 0
+        );
       }
 
       // ==================== CORRECCIONES LOCALES ====================
@@ -941,28 +965,36 @@
             if (!latestHands) return;
             const ahora = Date.now();
 
-            // Extraer 135 puntos correctamente
-            const lm135 = extraerLandmarks135(latestHands, faceResults);
-            ultimoFrame = lm135;
+            if (hayMano(latestHands)) {
+              // ✅ Hay mano: extraer, acumular y enviar
+              const lm135 = extraerLandmarks135(latestHands, faceResults);
+              ultimoFrame = lm135;
 
-            // Acumular buffer rodante
-            bufferSecuencia.push(lm135);
-            if (bufferSecuencia.length > CONFIG.SECUENCIA_LEN) bufferSecuencia.shift();
+              bufferSecuencia.push(lm135);
+              if (bufferSecuencia.length > CONFIG.SECUENCIA_LEN) bufferSecuencia.shift();
 
-            // Enviar cada 400ms cuando el buffer esté lleno
-            if (ahora - ultimoEnvio >= intervaloEnvio && bufferSecuencia.length === CONFIG.SECUENCIA_LEN) {
-              ultimoEnvio = ahora;
-              await enviarSecuencia();
-            }
+              if (ahora - ultimoEnvio >= intervaloEnvio && bufferSecuencia.length === CONFIG.SECUENCIA_LEN) {
+                ultimoEnvio = ahora;
+                await enviarSecuencia();
+              }
 
-            // Dibujar puntos si están activados
-            if (mostrarPuntos && latestHands.multiHandLandmarks && latestHands.multiHandLandmarks.length > 0) {
-              ctx.save();
-              ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-              dibujarLandmarks(latestHands.multiHandLandmarks[0]);
-              ctx.restore();
+              // Dibujar puntos si están activados
+              if (mostrarPuntos) {
+                ctx.save();
+                ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                dibujarLandmarks(latestHands.multiHandLandmarks[0]);
+                ctx.restore();
+              } else {
+                limpiarCanvas();
+              }
             } else {
+              // ❌ Sin mano: resetear buffer para evitar predicciones falsas
+              bufferSecuencia = [];
+              ultimoFrame = null;
               limpiarCanvas();
+              resultadoDiv.textContent = "✋ Muestra tu mano";
+              resultadoDiv.style.boxShadow = "none";
+              document.getElementById("confidenceMeter").style.opacity = "0";
             }
           });
 
