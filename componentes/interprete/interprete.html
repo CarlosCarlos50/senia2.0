@@ -1,1822 +1,938 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SeñIA - Intérprete Avanzado</title>
-
-    <!-- Librerías MediaPipe -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"
-      crossorigin="anonymous"
-    ></script>
-
-    <!-- Bootstrap Icons (para íconos bonitos) -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    />
-
-    <style>
-      /* ========== VARIABLES Y TEMA (del Script 2) ========== */
-      :root {
-        --bg-color: #0b2926;
-        --primary: #2de0d4;
-        --primary-glow: rgba(45, 224, 212, 0.4);
-        --text-main: #ffffff;
-        --text-muted: #8abeb9;
-        --card-bg: #113b37;
-        --transition-speed: 0.4s;
-      }
-
-      [data-theme="light"] {
-        --bg-color: #f0f4f4;
-        --primary: #1a9e95;
-        --primary-glow: rgba(26, 158, 149, 0.2);
-        --text-main: #1a2e2c;
-        --text-muted: #5a7a76;
-        --card-bg: #ffffff;
-      }
-
-      body {
-        font-family: "Segoe UI", system-ui, sans-serif;
-        background-color: var(--bg-color);
-        margin: 0;
-        color: var(--text-main);
-        overflow-x: hidden;
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        transition:
-          background-color var(--transition-speed),
-          color var(--transition-speed);
-      }
-
-      /* Botón de cambio de tema (flotante) */
-      .theme-toggle {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--card-bg);
-        color: var(--primary);
-        border: 2px solid var(--primary);
-        width: 50px;
-        height: 50px;
-        border-radius: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        z-index: 9999;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      }
-
-      .theme-toggle:hover {
-        transform: scale(1.1) rotate(10deg);
-        box-shadow: 0 0 20px var(--primary-glow);
-      }
-
-      /* ========== PANEL DE CONFIGURACIÓN FLOTANTE ========== */
-      .config-panel {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: var(--card-bg);
-        border: 2px solid var(--primary);
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        z-index: 9998;
-        transition: all 0.4s ease;
-        max-width: 320px;
-        max-height: 90vh;
-        overflow-y: auto;
-      }
-
-      .config-panel.minimizado {
-        width: 60px;
-        height: 60px;
-        padding: 0;
-        border-radius: 50%;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .config-panel.expandido {
-        width: 320px;
-        padding: 20px;
-        border-radius: 20px;
-      }
-
-      .config-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-        color: var(--primary);
-        font-weight: bold;
-      }
-
-      .config-panel.minimizado .config-header {
-        display: none;
-      }
-
-      .config-header h3 {
-        margin: 0;
-        font-size: 1rem;
-      }
-
-      .btn-minimize {
-        background: none;
-        border: none;
-        color: var(--primary);
-        cursor: pointer;
-        font-size: 1.2rem;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .btn-minimize:hover {
-        color: var(--text-main);
-      }
-
-      .config-content {
-        display: none;
-      }
-
-      .config-panel.expandido .config-content {
-        display: block;
-      }
-
-      .config-section {
-        margin-bottom: 15px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid var(--primary-glow);
-      }
-
-      .config-section:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-      }
-
-      .config-label {
-        display: block;
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        margin-bottom: 5px;
-        font-weight: 500;
-      }
-
-      .config-input-group {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-
-      .config-input {
-        flex: 1;
-        background: var(--bg-color);
-        border: 1px solid var(--primary-glow);
-        color: var(--text-main);
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-      }
-
-      .config-input:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 10px var(--primary-glow);
-      }
-
-      .config-input-unit {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-        min-width: 30px;
-      }
-
-      .config-toggle {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px;
-        background: var(--bg-color);
-        border-radius: 8px;
-        border: 1px solid var(--primary-glow);
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-
-      .config-toggle:hover {
-        border-color: var(--primary);
-        box-shadow: 0 0 10px var(--primary-glow);
-      }
-
-      .toggle-switch {
-        width: 40px;
-        height: 22px;
-        background: var(--text-muted);
-        border-radius: 11px;
-        position: relative;
-        transition: background 0.3s ease;
-      }
-
-      .toggle-switch.active {
-        background: var(--primary);
-      }
-
-      .toggle-switch::before {
-        content: "";
-        position: absolute;
-        width: 18px;
-        height: 18px;
-        background: var(--bg-color);
-        border-radius: 50%;
-        top: 2px;
-        left: 2px;
-        transition: left 0.3s ease;
-      }
-
-      .toggle-switch.active::before {
-        left: 20px;
-      }
-
-      .toggle-label {
-        flex: 1;
-        color: var(--text-main);
-        font-size: 0.95rem;
-      }
-
-      .config-button-group {
-        margin-top: 15px;
-        display: grid;
-        gap: 8px;
-      }
-
-      .config-btn {
-        background: var(--bg-color);
-        color: var(--primary);
-        border: 1px solid var(--primary);
-        padding: 8px 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-      }
-
-      .config-btn:hover {
-        background: var(--primary);
-        color: var(--bg-color);
-        box-shadow: 0 0 10px var(--primary-glow);
-      }
-
-      .toggle-panel-btn {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: var(--card-bg);
-        border: 2px solid var(--primary);
-        color: var(--primary);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        z-index: 9997;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      }
-
-      .toggle-panel-btn:hover {
-        transform: scale(1.1);
-        box-shadow: 0 0 20px var(--primary-glow);
-      }
-
-      .toggle-panel-btn.hidden {
-        display: none;
-      }
-
-      .config-panel.minimizado .toggle-panel-btn {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        margin: auto;
-        border: none;
-        box-shadow: none;
-      }
-
-      .config-panel.minimizado .toggle-panel-btn:hover {
-        transform: scale(1.05);
-      }
-
-      /* Contenedor principal con animación de entrada */
-      #main-wrapper {
-        opacity: 0;
-        transform: translateY(30px);
-        transition:
-          opacity 0.8s ease-out,
-          transform 0.8s ease-out;
-        flex: 1;
-        padding: 12px;
-        max-width: 850px;
-        margin: 0 auto;
-        width: 100%;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-      }
-
-      #main-wrapper.visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      /* Encabezado */
-      .page-header {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        padding: 10px 0 15px 0;
-        border-bottom: 1px solid var(--primary-glow);
-        margin-bottom: 10px;
-        gap: 15px;
-      }
-
-      .page-header img {
-        height: 50px;
-        width: auto;
-        max-width: 50px;
-      }
-
-      .page-header h1 {
-        margin: 0;
-        font-size: 1.3rem;
-        color: var(--primary);
-        flex: 1;
-      }
-
-      /* ========== ÁREAS DE TEXTO (palabra y frase) ========== */
-      .texto-panel {
-        width: 100%;
-        max-width: 600px;
-        margin: 5px 0;
-        position: relative;
-        z-index: 100;
-      }
-
-      .palabra-container,
-      .frase-container {
-        background: var(--card-bg);
-        border-radius: 12px;
-        padding: 10px 12px;
-        margin: 5px 0;
-        border: 1px solid var(--primary-glow);
-        box-shadow: 0 0 10px rgba(45, 224, 212, 0.2);
-        transition: all 0.3s ease;
-        min-height: auto;
-      }
-
-      .palabra-container h3,
-      .frase-container h3 {
-        margin: 0 0 3px 0;
-        color: var(--primary);
-        font-size: 0.8rem;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-
-      #palabra,
-      #frase {
-        font-size: 1rem;
-        word-break: break-word;
-        min-height: 1.2rem;
-        color: var(--text-main);
-        line-height: 1.4;
-      }
-
-      /* ========== ÁREA DE RESULTADO (letra grande) ========== */
-      #resultado {
-        font-size: 1.8rem;
-        font-weight: bold;
-        margin: 8px 0;
-        padding: 12px 25px;
-        border-radius: 15px;
-        background: var(--card-bg);
-        color: var(--primary);
-        min-height: 45px;
-        text-align: center;
-        border: 2px solid var(--primary-glow);
-        box-shadow: 0 0 15px var(--primary-glow);
-        width: 100%;
-        max-width: 450px;
-        transition: all 0.3s ease;
-      }
-
-      /* ========== CONTENEDOR DE VIDEO ========== */
-      .video-container {
-        position: relative;
-        width: 100%;
-        max-width: 550px;
-        aspect-ratio: 4 / 3;
-        background: #000;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
-        border: 3px solid var(--card-bg);
-        margin: 8px 0;
-      }
-
-      video {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transform: scaleX(-1);
-      }
-
-      .output_canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        display: none;
-        z-index: 5;
-      }
-
-      /* Línea de escaneo decorativa */
-      .scan-line {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background: var(--primary);
-        box-shadow: 0 0 15px var(--primary);
-        animation: scanning 3s infinite linear;
-        z-index: 10;
-        opacity: 0.5;
-      }
-
-      @keyframes scanning {
-        0% {
-          top: 0;
-        }
-        50% {
-          top: 100%;
-        }
-        100% {
-          top: 0;
-        }
-      }
-
-      /* ========== MEDIDOR DE CONFIANZA (VELOCÍMETRO) ========== */
-      .confidence-meter {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        width: 100px;
-        height: 100px;
-        background: rgba(11, 41, 38, 0.25);
-        border: 2px solid var(--primary);
-        border-radius: 50%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 20;
-        box-shadow: 0 0 15px rgba(45, 224, 212, 0.3);
-        backdrop-filter: blur(3px);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-
-      .meter-label {
-        font-size: 0.55rem;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-top: 0;
-      }
-
-      .meter-value {
-        font-size: 1.6rem;
-        font-weight: bold;
-        color: var(--primary);
-        text-shadow: 0 0 8px var(--primary-glow);
-        margin: 0;
-        line-height: 1;
-      }
-
-      .meter-percent {
-        font-size: 0.65rem;
-        color: var(--text-muted);
-      }
-
-      .meter-letter {
-        font-size: 0.9rem;
-        color: var(--primary);
-        font-weight: bold;
-        margin-top: 2px;
-        background: rgba(45, 224, 212, 0.15);
-        min-width: 22px;
-        height: 22px;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        border-radius: 6px;
-        border: 1px solid var(--primary-glow);
-      }
-
-      /* Anillo de progreso circular */
-      .meter-ring {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        background: conic-gradient(
-          var(--primary) 0deg,
-          var(--primary) var(--progress),
-          transparent var(--progress)
-        );
-        opacity: 0.3;
-      }
-
-      /* Animación de pulso cuando se actualiza */
-      @keyframes pulse-meter {
-        0% {
-          box-shadow: 0 0 20px rgba(45, 224, 212, 0.4);
-        }
-        50% {
-          box-shadow: 0 0 35px rgba(45, 224, 212, 0.8);
-        }
-        100% {
-          box-shadow: 0 0 20px rgba(45, 224, 212, 0.4);
-        }
-      }
-
-      .confidence-meter.updated {
-        animation: pulse-meter 0.6s ease-out;
-      }
-
-      /* Responsive para el medidor */
-      @media (max-width: 479px) {
-        .confidence-meter {
-          width: 90px;
-          height: 90px;
-          top: 8px;
-          right: 8px;
-          border-width: 1.5px;
-        }
-
-        .meter-label {
-          font-size: 0.5rem;
-          letter-spacing: 0.3px;
-        }
-
-        .meter-value {
-          font-size: 1.4rem;
-        }
-
-        .meter-percent {
-          font-size: 0.6rem;
-        }
-
-        .meter-letter {
-          font-size: 0.8rem;
-          min-width: 20px;
-          height: 20px;
-          margin-top: 1px;
-        }
-      }
-
-      @media (max-width: 640px) {
-        .confidence-meter {
-          width: 95px;
-          height: 95px;
-        }
-      }
-
-      /* ========== BOTONES DE CONTROL ========== */
-      .controles {
-        margin: 15px;
-        display: flex;
-        gap: 15px;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-
-      .btn {
-        background: var(--card-bg);
-        color: var(--primary);
-        border: 2px solid var(--primary);
-        padding: 10px 20px;
-        border-radius: 15px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .btn:hover {
-        background: var(--primary);
-        color: var(--bg-color);
-        box-shadow: 0 0 15px var(--primary-glow);
-      }
-
-      #activarVoz {
-        background: #0055aa;
-        border-color: #ffffff;
-        color: white;
-      }
-
-      #activarVoz:hover {
-        background: #0066cc;
-        box-shadow: 0 0 15px #00aaff;
-      }
-
-      /* ========== INSTRUCCIONES ========== */
-      .instrucciones {
-        margin-top: 8px;
-        color: var(--text-muted);
-        font-size: 0.85rem;
-        text-align: center;
-        max-width: 450px;
-        line-height: 1.4;
-      }
-
-      /* ========== MEDIA QUERIES - RESPONSIVE DESIGN ========== */
-
-      /* MÓVIL - Extra Small (< 480px) */
-      @media (max-width: 479px) {
-        #main-wrapper {
-          padding: 8px;
-          gap: 5px;
-          max-width: 100%;
-        }
-
-        .video-container {
-          max-width: 100%;
-          width: 100%;
-          aspect-ratio: 3 / 4;
-          border-radius: 15px;
-          margin: 5px 0;
-        }
-
-        #resultado {
-          font-size: 1.2rem;
-          padding: 8px 15px;
-          max-width: 100%;
-          margin: 5px 0;
-          min-height: 40px;
-        }
-
-        .page-header {
-          padding: 8px 0 8px 0;
-          margin-bottom: 5px;
-          gap: 10px;
-        }
-
-        .page-header img {
-          height: 30px;
-        }
-
-        .page-header h1 {
-          font-size: 0.95rem;
-        }
-
-        .texto-panel {
-          max-width: 100%;
-          width: 100%;
-          margin: 3px 0;
-        }
-
-        .palabra-container,
-        .frase-container {
-          padding: 6px 8px;
-          margin: 3px 0;
-          border-radius: 10px;
-        }
-
-        .palabra-container h3,
-        .frase-container h3 {
-          font-size: 0.75rem;
-          margin: 0 0 2px 0;
-        }
-
-        #palabra,
-        #frase {
-          font-size: 0.85rem;
-          min-height: 1rem;
-        }
-
-        .controles {
-          margin: 8px;
-          gap: 8px;
-        }
-
-        .btn {
-          padding: 6px 10px;
-          font-size: 0.75rem;
-          border-radius: 10px;
-          gap: 4px;
-        }
-
-        .instrucciones {
-          font-size: 0.7rem;
-          max-width: 100%;
-          line-height: 1.3;
-          margin-top: 5px;
-        }
-
-        .config-panel {
-          bottom: 10px;
-          right: 10px;
-          max-width: calc(100vw - 40px);
-        }
-
-        .theme-toggle {
-          top: 10px;
-          right: 10px;
-          width: 45px;
-          height: 45px;
-        }
-      }
-
-      /* MÓVIL - Small (480px - 640px) */
-      @media (min-width: 480px) and (max-width: 640px) {
-        #main-wrapper {
-          padding: 10px;
-          gap: 6px;
-          max-width: 100%;
-        }
-
-        .video-container {
-          max-width: 100%;
-          width: 100%;
-          aspect-ratio: 4 / 5;
-          border-radius: 15px;
-        }
-
-        #resultado {
-          font-size: 1.3rem;
-          padding: 10px 20px;
-          max-width: 90%;
-        }
-
-        .page-header img {
-          height: 35px;
-        }
-
-        .page-header h1 {
-          font-size: 1rem;
-        }
-
-        .texto-panel {
-          max-width: 95%;
-        }
-
-        #palabra,
-        #frase {
-          font-size: 0.9rem;
-        }
-
-        .btn {
-          padding: 7px 12px;
-          font-size: 0.8rem;
-        }
-
-        .instrucciones {
-          font-size: 0.75rem;
-          max-width: 90%;
-        }
-      }
-
-      /* TABLET - Medium (640px - 1024px) */
-      @media (min-width: 641px) and (max-width: 1024px) {
-        #main-wrapper {
-          padding: 15px;
-          gap: 10px;
-          max-width: 100%;
-        }
-
-        .video-container {
-          max-width: 85%;
-          width: 85%;
-          aspect-ratio: 4 / 3;
-          border-radius: 18px;
-        }
-
-        #resultado {
-          font-size: 1.6rem;
-          padding: 12px 25px;
-          max-width: 80%;
-        }
-
-        .page-header {
-          padding: 12px 0 12px 0;
-          margin-bottom: 10px;
-        }
-
-        .page-header img {
-          height: 45px;
-        }
-
-        .page-header h1 {
-          font-size: 1.2rem;
-        }
-
-        .texto-panel {
-          max-width: 80%;
-        }
-
-        .palabra-container,
-        .frase-container {
-          padding: 10px 12px;
-        }
-
-        #palabra,
-        #frase {
-          font-size: 1rem;
-        }
-
-        .controles {
-          margin: 12px;
-          gap: 12px;
-        }
-
-        .btn {
-          padding: 9px 15px;
-          font-size: 0.9rem;
-        }
-
-        .instrucciones {
-          font-size: 0.85rem;
-          max-width: 75%;
-        }
-
-        .config-panel {
-          bottom: 20px;
-          right: 20px;
-          max-width: 340px;
-        }
-      }
-
-      /* DESKTOP - Large (> 1024px) */
-      @media (min-width: 1025px) {
-        #main-wrapper {
-          padding: 20px;
-          gap: 12px;
-          max-width: 900px;
-        }
-
-        .video-container {
-          max-width: 550px;
-          width: 550px;
-          aspect-ratio: 4 / 3;
-          border-radius: 20px;
-        }
-
-        #resultado {
-          font-size: 1.8rem;
-          padding: 12px 25px;
-          max-width: 500px;
-        }
-
-        .page-header {
-          padding: 12px 0 15px 0;
-        }
-
-        .page-header img {
-          height: 50px;
-        }
-
-        .page-header h1 {
-          font-size: 1.3rem;
-        }
-
-        .texto-panel {
-          max-width: 600px;
-        }
-
-        .controles {
-          margin: 15px;
-          gap: 15px;
-        }
-
-        .btn {
-          padding: 10px 20px;
-          font-size: 0.95rem;
-        }
-
-        .instrucciones {
-          font-size: 0.85rem;
-          max-width: 500px;
-        }
-      }
-
-      /* Optimización para orientación horizontal en móviles */
-      @media (max-height: 500px) and (orientation: landscape) {
-        .video-container {
-          max-width: 100%;
-          aspect-ratio: 16 / 9;
-          margin: 5px 0;
-        }
-
-        #main-wrapper {
-          gap: 3px;
-          padding: 5px;
-        }
-
-        .texto-panel {
-          max-width: 90%;
-        }
-
-        .controles {
-          margin: 5px;
-          gap: 8px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Botón de tema flotante -->
-    <button class="theme-toggle" id="theme-btn">
-      <i class="bi bi-moon-stars-fill" id="theme-icon"></i>
-    </button>
-
-    <!-- Panel de configuración flotante -->
-    <div class="config-panel expandido" id="configPanel">
-      <div class="config-header">
-        <h3>⚙️ Configuración</h3>
-        <button class="btn-minimize" id="btnMinimizePanel">
-          <i class="bi bi-dash-lg"></i>
-        </button>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SeñIA - Intérprete Avanzado</title>
+
+  <!-- Librerías MediaPipe (Hands + FaceMesh) -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <style>
+    /* ========== VARIABLES Y TEMA (igual que antes) ========== */
+    :root {
+      --bg-color: #0b2926;
+      --primary: #2de0d4;
+      --primary-glow: rgba(45, 224, 212, 0.4);
+      --text-main: #ffffff;
+      --text-muted: #8abeb9;
+      --card-bg: #113b37;
+      --transition-speed: 0.4s;
+    }
+    [data-theme="light"] {
+      --bg-color: #f0f4f4;
+      --primary: #1a9e95;
+      --primary-glow: rgba(26, 158, 149, 0.2);
+      --text-main: #1a2e2c;
+      --text-muted: #5a7a76;
+      --card-bg: #ffffff;
+    }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background-color: var(--bg-color);
+      margin: 0;
+      color: var(--text-main);
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      transition: background-color var(--transition-speed), color var(--transition-speed);
+    }
+    /* Botón de tema flotante */
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--card-bg);
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      width: 50px;
+      height: 50px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 9999;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    .theme-toggle:hover {
+      transform: scale(1.1) rotate(10deg);
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+    /* Panel de configuración flotante */
+    .config-panel {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--card-bg);
+      border: 2px solid var(--primary);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      z-index: 9998;
+      transition: all 0.4s ease;
+      max-width: 320px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .config-panel.minimizado {
+      width: 60px;
+      height: 60px;
+      padding: 0;
+      border-radius: 50%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .config-panel.expandido {
+      width: 320px;
+      padding: 20px;
+      border-radius: 20px;
+    }
+    .config-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      color: var(--primary);
+      font-weight: bold;
+    }
+    .config-panel.minimizado .config-header { display: none; }
+    .config-header h3 { margin: 0; font-size: 1rem; }
+    .btn-minimize {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-minimize:hover { color: var(--text-main); }
+    .config-content { display: none; }
+    .config-panel.expandido .config-content { display: block; }
+    .config-section {
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--primary-glow);
+    }
+    .config-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .config-label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    .config-input-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .config-input {
+      flex: 1;
+      background: var(--bg-color);
+      border: 1px solid var(--primary-glow);
+      color: var(--text-main);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+    .config-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+    .config-input-unit { color: var(--text-muted); font-size: 0.85rem; min-width: 30px; }
+    .config-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background: var(--bg-color);
+      border-radius: 8px;
+      border: 1px solid var(--primary-glow);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .config-toggle:hover {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+    .toggle-switch {
+      width: 40px;
+      height: 22px;
+      background: var(--text-muted);
+      border-radius: 11px;
+      position: relative;
+      transition: background 0.3s ease;
+    }
+    .toggle-switch.active { background: var(--primary); }
+    .toggle-switch::before {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: var(--bg-color);
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: left 0.3s ease;
+    }
+    .toggle-switch.active::before { left: 20px; }
+    .toggle-label { flex: 1; color: var(--text-main); font-size: 0.95rem; }
+    .config-button-group { margin-top: 15px; display: grid; gap: 8px; }
+    .config-btn {
+      background: var(--bg-color);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .config-btn:hover {
+      background: var(--primary);
+      color: var(--bg-color);
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+    /* Contenedor principal */
+    #main-wrapper {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+      flex: 1;
+      padding: 12px;
+      max-width: 850px;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    #main-wrapper.visible { opacity: 1; transform: translateY(0); }
+    .page-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      padding: 10px 0 15px 0;
+      border-bottom: 1px solid var(--primary-glow);
+      margin-bottom: 10px;
+      gap: 15px;
+    }
+    .page-header img { height: 50px; width: auto; max-width: 50px; }
+    .page-header h1 { margin: 0; font-size: 1.3rem; color: var(--primary); flex: 1; }
+    .texto-panel {
+      width: 100%;
+      max-width: 600px;
+      margin: 5px 0;
+      position: relative;
+      z-index: 100;
+    }
+    .palabra-container, .frase-container {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin: 5px 0;
+      border: 1px solid var(--primary-glow);
+      box-shadow: 0 0 10px rgba(45, 224, 212, 0.2);
+      transition: all 0.3s ease;
+      min-height: auto;
+    }
+    .palabra-container h3, .frase-container h3 {
+      margin: 0 0 3px 0;
+      color: var(--primary);
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    #palabra, #frase {
+      font-size: 1rem;
+      word-break: break-word;
+      min-height: 1.2rem;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+    #resultado {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin: 8px 0;
+      padding: 12px 25px;
+      border-radius: 15px;
+      background: var(--card-bg);
+      color: var(--primary);
+      min-height: 45px;
+      text-align: center;
+      border: 2px solid var(--primary-glow);
+      box-shadow: 0 0 15px var(--primary-glow);
+      width: 100%;
+      max-width: 450px;
+      transition: all 0.3s ease;
+    }
+    .video-container {
+      position: relative;
+      width: 100%;
+      max-width: 550px;
+      aspect-ratio: 4 / 3;
+      background: #000;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+      border: 3px solid var(--card-bg);
+      margin: 8px 0;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+    .output_canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: none;
+      z-index: 5;
+    }
+    .scan-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--primary);
+      box-shadow: 0 0 15px var(--primary);
+      animation: scanning 3s infinite linear;
+      z-index: 10;
+      opacity: 0.5;
+    }
+    @keyframes scanning {
+      0% { top: 0; }
+      50% { top: 100%; }
+      100% { top: 0; }
+    }
+    /* Medidor de confianza simple */
+    .confidence-meter {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 100px;
+      height: 100px;
+      background: rgba(11, 41, 38, 0.25);
+      border: 2px solid var(--primary);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      box-shadow: 0 0 15px rgba(45, 224, 212, 0.3);
+      backdrop-filter: blur(3px);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .meter-label { font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0; }
+    .meter-value { font-size: 1.6rem; font-weight: bold; color: var(--primary); text-shadow: 0 0 8px var(--primary-glow); margin: 0; line-height: 1; }
+    .meter-percent { font-size: 0.65rem; color: var(--text-muted); }
+    .meter-letter { font-size: 0.9rem; color: var(--primary); font-weight: bold; margin-top: 2px; background: rgba(45, 224, 212, 0.15); min-width: 22px; height: 22px; display: none; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid var(--primary-glow); }
+    .meter-ring {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: conic-gradient( var(--primary) 0deg, var(--primary) var(--progress), transparent var(--progress) );
+      opacity: 0.3;
+    }
+    @keyframes pulse-meter {
+      0% { box-shadow: 0 0 20px rgba(45, 224, 212, 0.4); }
+      50% { box-shadow: 0 0 35px rgba(45, 224, 212, 0.8); }
+      100% { box-shadow: 0 0 20px rgba(45, 224, 212, 0.4); }
+    }
+    .confidence-meter.updated { animation: pulse-meter 0.6s ease-out; }
+    .controles { margin: 15px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+    .btn {
+      background: var(--card-bg);
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      padding: 10px 20px;
+      border-radius: 15px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn:hover { background: var(--primary); color: var(--bg-color); box-shadow: 0 0 15px var(--primary-glow); }
+    #activarVoz { background: #0055aa; border-color: #ffffff; color: white; }
+    #activarVoz:hover { background: #0066cc; box-shadow: 0 0 15px #00aaff; }
+    .instrucciones { margin-top: 8px; color: var(--text-muted); font-size: 0.85rem; text-align: center; max-width: 450px; line-height: 1.4; }
+    @media (max-width: 479px) { /* responsive mantén lo que tenías */ }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="theme-btn"><i class="bi bi-moon-stars-fill" id="theme-icon"></i></button>
+  <div class="config-panel expandido" id="configPanel">
+    <div class="config-header">
+      <h3>⚙️ Configuración</h3>
+      <button class="btn-minimize" id="btnMinimizePanel"><i class="bi bi-dash-lg"></i></button>
+    </div>
+    <div class="config-content">
+      <div class="config-section">
+        <label class="config-label">Control de Cámara</label>
+        <div class="config-button-group">
+          <button id="togglePuntos" class="config-btn"><i class="bi bi-dot"></i> Mostrar Puntos</button>
+          <button id="toggleCamara" class="config-btn"><i class="bi bi-camera-video"></i> Cambiar Cámara</button>
+          <button id="activarVoz" class="config-btn"><i class="bi bi-mic"></i> Activar Voz</button>
+        </div>
       </div>
-
-      <div class="config-content">
-        <!-- Sección de Controles -->
-        <div class="config-section">
-          <label class="config-label">Control de Cámara</label>
-          <div class="config-button-group">
-            <button id="togglePuntos" class="config-btn">
-              <i class="bi bi-dot"></i> Mostrar Puntos
-            </button>
-            <button id="toggleCamara" class="config-btn">
-              <i class="bi bi-camera-video"></i> Cambiar Cámara
-            </button>
-            <button id="activarVoz" class="config-btn">
-              <i class="bi bi-mic"></i> Activar Voz
-            </button>
-          </div>
+      <div class="config-section">
+        <label class="config-label" for="tiempoFrase">Segundos entre Frases:</label>
+        <div class="config-input-group">
+          <input type="number" id="tiempoFrase" class="config-input" min="2" max="10" step="0.5" value="4" />
+          <span class="config-input-unit">seg</span>
         </div>
-
-        <!-- Sección de Tiempo entre Frases -->
-        <div class="config-section">
-          <label class="config-label" for="tiempoFrase"
-            >Segundos entre Frases:</label
-          >
-          <div class="config-input-group">
-            <input
-              type="number"
-              id="tiempoFrase"
-              class="config-input"
-              min="2"
-              max="10"
-              step="0.5"
-              value="4"
-            />
-            <span class="config-input-unit">seg</span>
-          </div>
-          <div
-            style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px"
-          >
-            Tiempo de pausa para enviar la frase a procesar
-          </div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px">Tiempo de pausa para enviar la frase a procesar</div>
+      </div>
+      <div class="config-section">
+        <label class="config-label" for="tiempoLetras">Tiempo entre Letras:</label>
+        <div class="config-input-group">
+          <input type="number" id="tiempoLetras" class="config-input" min="300" max="2000" step="50" value="700" />
+          <span class="config-input-unit">ms</span>
         </div>
-
-        <!-- Sección de Tiempo entre Letras -->
-        <div class="config-section">
-          <label class="config-label" for="tiempoLetras"
-            >Tiempo entre Letras:</label
-          >
-          <div class="config-input-group">
-            <input
-              type="number"
-              id="tiempoLetras"
-              class="config-input"
-              min="300"
-              max="2000"
-              step="50"
-              value="700"
-            />
-            <span class="config-input-unit">ms</span>
-          </div>
-          <div
-            style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px"
-          >
-            Tiempo mínimo entre cada letra detectada
-          </div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px">Tiempo mínimo entre cada letra detectada</div>
+      </div>
+      <div class="config-section">
+        <div class="config-toggle" id="toggleAutocorrector">
+          <div class="toggle-switch active"></div>
+          <span class="toggle-label">Autocorrector</span>
         </div>
-
-        <!-- Sección de Autocorrector -->
-        <div class="config-section">
-          <div class="config-toggle" id="toggleAutocorrector">
-            <div class="toggle-switch active"></div>
-            <span class="toggle-label">Autocorrector</span>
-          </div>
-          <div
-            style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px"
-          >
-            Corregir ortografía automáticamente
-          </div>
-        </div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:8px">Corregir ortografía automáticamente</div>
       </div>
     </div>
-
-    <!-- Contenedor principal con animación -->
-    <div id="main-wrapper">
-      <header class="page-header"></header>
-
-      <!-- Botones de control (puntos, cámara, voz) -->
-      <div class="controles" style="display: none">
-        <button id="togglePuntos" class="btn">
-          <i class="bi bi-dot"></i> Mostrar Puntos
-        </button>
-        <button id="toggleCamara" class="btn">
-          <i class="bi bi-camera-video"></i> Cambiar Cámara
-        </button>
-        <button id="activarVoz" class="btn">
-          <i class="bi bi-mic"></i> Activar Voz
-        </button>
-      </div>
-
-      <!-- Panel de resultados -->
-
-      <div id="resultado">
-        <img
-          src="../../155a4c37-5a91-4ec8-9a18-f3f6373fd043_inspyrenet.png"
-          width="20%"
-        />HAZ CLIC PARA INICIAR
-      </div>
-
-      <!-- Áreas de palabra y frase (incorporadas del Script 1) -->
-      <div class="texto-panel">
-        <div class="palabra-container">
-          <h3><i class="bi bi-type"></i> Palabra actual:</h3>
-          <div id="palabra"></div>
-        </div>
-        <div class="frase-container">
-          <h3><i class="bi bi-chat-dots"></i> Frase:</h3>
-          <div id="frase"></div>
-        </div>
-      </div>
-
-      <!-- Contenedor de video con línea de escaneo -->
-      <div class="video-container">
-        <div class="scan-line"></div>
-        <video class="input_video"></video>
-        <canvas class="output_canvas"></canvas>
-
-        <!-- Medidor de confianza (Velocímetro) -->
-        <div class="confidence-meter" id="confidenceMeter">
-          <div class="meter-ring"></div>
-          <div class="meter-label">Coincidencia</div>
-          <div>
-            <div class="meter-value" id="meterPercent">0</div>
-            <div class="meter-percent">%</div>
-          </div>
-          <div class="meter-letter" id="meterLetter">—</div>
-        </div>
-      </div>
-
-      <!-- Instrucciones -->
-      <div class="instrucciones">
-        <i class="bi bi-info-circle"></i><br />
-        • Haz clic en cualquier lugar para activar la cámara<br />
-        • Muestra tu mano para formar letras<br />
-        • Una pausa corta (1.5s) separa palabras<br />
-        • Una pausa larga (4s) envía la frase a corregir y a voz<br />
-        • Usa "Activar Voz" para habilitar el audio (necesario en móviles)
+  </div>
+  <div id="main-wrapper">
+    <header class="page-header"></header>
+    <div id="resultado"><img src="../../155a4c37-5a91-4ec8-9a18-f3f6373fd043_inspyrenet.png" width="20%" /> HAZ CLIC PARA INICIAR</div>
+    <div class="texto-panel">
+      <div class="palabra-container"><h3><i class="bi bi-type"></i> Palabra actual:</h3><div id="palabra"></div></div>
+      <div class="frase-container"><h3><i class="bi bi-chat-dots"></i> Frase:</h3><div id="frase"></div></div>
+    </div>
+    <div class="video-container">
+      <div class="scan-line"></div>
+      <video class="input_video"></video>
+      <canvas class="output_canvas"></canvas>
+      <div class="confidence-meter" id="confidenceMeter">
+        <div class="meter-ring"></div>
+        <div class="meter-label">Coincidencia</div>
+        <div><div class="meter-value" id="meterPercent">0</div><div class="meter-percent">%</div></div>
+        <div class="meter-letter" id="meterLetter">—</div>
       </div>
     </div>
+    <div class="instrucciones">
+      <i class="bi bi-info-circle"></i><br />
+      • Haz clic en cualquier lugar para activar la cámara<br />
+      • Muestra tu mano para formar letras o palabras dinámicas<br />
+      • Una pausa corta (1.5s) separa palabras<br />
+      • Una pausa larga (4s) envía la frase a corregir y a voz<br />
+      • Usa "Activar Voz" para habilitar el audio (necesario en móviles)
+    </div>
+  </div>
 
-    <script>
-      // ==================== LÓGICA DE TEMA (del Script 2) ====================
-      const themeBtn = document.getElementById("theme-btn");
-      const themeIcon = document.getElementById("theme-icon");
-      const body = document.body;
-
-      // Cargar tema guardado
-      if (localStorage.getItem("theme") === "light") {
+  <script>
+    // ==================== LÓGICA DE TEMA ====================
+    const themeBtn = document.getElementById("theme-btn");
+    const themeIcon = document.getElementById("theme-icon");
+    const body = document.body;
+    if (localStorage.getItem("theme") === "light") {
+      body.setAttribute("data-theme", "light");
+      themeIcon.classList.replace("bi-moon-stars-fill", "bi-sun-fill");
+    }
+    themeBtn.addEventListener("click", () => {
+      if (body.getAttribute("data-theme") === "light") {
+        body.removeAttribute("data-theme");
+        themeIcon.classList.replace("bi-sun-fill", "bi-moon-stars-fill");
+        localStorage.setItem("theme", "dark");
+      } else {
         body.setAttribute("data-theme", "light");
         themeIcon.classList.replace("bi-moon-stars-fill", "bi-sun-fill");
+        localStorage.setItem("theme", "light");
       }
+    });
 
-      themeBtn.addEventListener("click", () => {
-        if (body.getAttribute("data-theme") === "light") {
-          body.removeAttribute("data-theme");
-          themeIcon.classList.replace("bi-sun-fill", "bi-moon-stars-fill");
-          localStorage.setItem("theme", "dark");
-        } else {
-          body.setAttribute("data-theme", "light");
-          themeIcon.classList.replace("bi-moon-stars-fill", "bi-sun-fill");
-          localStorage.setItem("theme", "light");
-        }
-      });
-
-      // ==================== LÓGICA DEL PANEL DE CONFIGURACIÓN ====================
-      const configPanel = document.getElementById("configPanel");
-      const btnMinimizePanel = document.getElementById("btnMinimizePanel");
-      const tiempoFraseInput = document.getElementById("tiempoFrase");
-      const tiempoLetrasInput = document.getElementById("tiempoLetras");
-      const toggleAutocorrector = document.getElementById(
-        "toggleAutocorrector",
-      );
-
-      // Variables de estado del panel
-      let autocorrectorActivo = true;
-
-      // Minimizar/Expandir panel - BOTÓN
-      btnMinimizePanel.addEventListener("click", (e) => {
-        e.stopPropagation(); // Evitar que se propague el click
-        configPanel.classList.toggle("minimizado");
-        configPanel.classList.toggle("expandido");
-        if (configPanel.classList.contains("minimizado")) {
-          btnMinimizePanel.innerHTML = '<i class="bi bi-plus-lg"></i>';
-        } else {
-          btnMinimizePanel.innerHTML = '<i class="bi bi-dash-lg"></i>';
-        }
-      });
-
-      // Expandir panel al hacer clic solo si está minimizado
-      configPanel.addEventListener("click", (e) => {
-        // Solo aplicar si el panel está minimizado y se hace click en él (no en un input)
-        if (
-          configPanel.classList.contains("minimizado") &&
-          e.target === configPanel
-        ) {
-          e.stopPropagation();
-          configPanel.classList.remove("minimizado");
-          configPanel.classList.add("expandido");
-          btnMinimizePanel.innerHTML = '<i class="bi bi-dash-lg"></i>';
-        }
-      });
-
-      // Actualizar tiempo entre frases
-      tiempoFraseInput.addEventListener("change", () => {
-        CONFIG.TIEMPO_FRASE = parseFloat(tiempoFraseInput.value) * 1000;
-        console.log(
-          "Tiempo entre frases actualizado a:",
-          CONFIG.TIEMPO_FRASE,
-          "ms",
-        );
-      });
-
-      // Actualizar tiempo entre letras
-      tiempoLetrasInput.addEventListener("change", () => {
-        TIEMPO_ENTRE_LETRAS = parseInt(tiempoLetrasInput.value);
-        console.log(
-          "Tiempo entre letras actualizado a:",
-          TIEMPO_ENTRE_LETRAS,
-          "ms",
-        );
-      });
-
-      // Toggle autocorrector
-      toggleAutocorrector.addEventListener("click", () => {
-        const toggleSwitch =
-          toggleAutocorrector.querySelector(".toggle-switch");
-        toggleSwitch.classList.toggle("active");
-        autocorrectorActivo = !autocorrectorActivo;
-        console.log(
-          "Autocorrector:",
-          autocorrectorActivo ? "Activado" : "Desactivado",
-        );
-      });
-
-      // Animación de entrada
-      document.addEventListener("DOMContentLoaded", () => {
-        setTimeout(() => {
-          document.getElementById("main-wrapper").classList.add("visible");
-        }, 50);
-      });
-
-      // ==================== FUNCIONALIDAD COMPLETA DEL SCRIPT 1 ====================
-      // (Todo lo que sigue es la lógica original del Script 1, ligeramente adaptada para convivir con el nuevo diseño)
-
-      // CONFIGURACIÓN
-      const CONFIG = {
-        detectarEspacioPorDesaparicion: true,
-        TIEMPO_SILENCIO: 2500,
-        TIEMPO_FRASE: 4000,
-        API_URL: "https://senia-api.onrender.com/predecir",
-      };
-
-      // Variables de estado
-      let palabraActual = "";
-      let fraseActual = "";
-      let ultimaLetra = "";
-      let ultimoTiempo = Date.now();
-      let manoVisible = false;
-      let vozActivada = false;
-      // 🔥 BUFFER DE ESTABILIDAD
-      let bufferLetras = [];
-      const BUFFER_SIZE = 5;
-      let ultimoIngreso = 0;
-      let TIEMPO_ENTRE_LETRAS = 700; // 🔥 variable para poder ajustar desde el panel
-
-      // Elementos DOM
-      const videoElement = document.querySelector(".input_video");
-      const canvasElement = document.querySelector(".output_canvas");
-      const resultadoDiv = document.getElementById("resultado");
-      const palabraDiv = document.getElementById("palabra");
-      const fraseDiv = document.getElementById("frase");
-      const ctx = canvasElement.getContext("2d");
-
-      // Etiquetas de letras
-      const letras = [
-        "A",
-        "B",
-        "C",
-        "D",
-        "E",
-        "F",
-        "G",
-        "H",
-        "I",
-        "L",
-        "M",
-        "N",
-        "O",
-        "P",
-        "R",
-        "S",
-        "T",
-        "U",
-        "V",
-        "W",
-        "Y",
-      ];
-
-      // Variables de control MediaPipe
-      let mostrarPuntos = false;
-      let camaraFrontal = true;
-      let cameraInstance = null;
-      let handsInstance = null;
-      let sistemaIniciado = false;
-
-      canvasElement.width = 640;
-      canvasElement.height = 480;
-
-      const CONEXIONES_MANO = [
-        [0, 1],
-        [1, 2],
-        [2, 3],
-        [3, 4],
-        [0, 5],
-        [5, 6],
-        [6, 7],
-        [7, 8],
-        [0, 9],
-        [9, 10],
-        [10, 11],
-        [11, 12],
-        [0, 13],
-        [13, 14],
-        [14, 15],
-        [15, 16],
-        [0, 17],
-        [17, 18],
-        [18, 19],
-        [19, 20],
-      ];
-
-      // Funciones de dibujo
-      function dibujarLandmarks(landmarks) {
-        if (!landmarks || landmarks.length === 0) return;
-
-        ctx.save();
-
-        // 🔥 INVERTIR CANVAS
-        ctx.scale(-1, 1);
-        ctx.translate(-canvasElement.width, 0);
-
-        ctx.strokeStyle = "#2de0d4";
-        ctx.fillStyle = "#ffffff";
-        ctx.lineWidth = 3;
-
-        CONEXIONES_MANO.forEach(([inicio, fin]) => {
-          const p1 = landmarks[inicio];
-          const p2 = landmarks[fin];
-
-          ctx.beginPath();
-          ctx.moveTo(p1.x * canvasElement.width, p1.y * canvasElement.height);
-          ctx.lineTo(p2.x * canvasElement.width, p2.y * canvasElement.height);
-          ctx.stroke();
-        });
-
-        landmarks.forEach((p) => {
-          ctx.beginPath();
-          ctx.arc(
-            p.x * canvasElement.width,
-            p.y * canvasElement.height,
-            4,
-            0,
-            2 * Math.PI,
-          );
-          ctx.fill();
-        });
-
-        ctx.restore();
+    // Panel de configuración
+    const configPanel = document.getElementById("configPanel");
+    const btnMinimizePanel = document.getElementById("btnMinimizePanel");
+    const tiempoFraseInput = document.getElementById("tiempoFrase");
+    const tiempoLetrasInput = document.getElementById("tiempoLetras");
+    const toggleAutocorrector = document.getElementById("toggleAutocorrector");
+    let autocorrectorActivo = true;
+    btnMinimizePanel.addEventListener("click", (e) => {
+      e.stopPropagation();
+      configPanel.classList.toggle("minimizado");
+      configPanel.classList.toggle("expandido");
+      btnMinimizePanel.innerHTML = configPanel.classList.contains("minimizado") ? '<i class="bi bi-plus-lg"></i>' : '<i class="bi bi-dash-lg"></i>';
+    });
+    configPanel.addEventListener("click", (e) => {
+      if (configPanel.classList.contains("minimizado") && e.target === configPanel) {
+        e.stopPropagation();
+        configPanel.classList.remove("minimizado");
+        configPanel.classList.add("expandido");
+        btnMinimizePanel.innerHTML = '<i class="bi bi-dash-lg"></i>';
       }
-      function terminarPalabra() {
-        if (palabraActual.length > 0) {
-          // 🔥 evitar espacios dobles
-          if (!fraseActual.endsWith(" ")) {
-            fraseActual += palabraActual + " ";
-          } else {
-            fraseActual += palabraActual + " ";
+    });
+    tiempoFraseInput.addEventListener("change", () => { CONFIG.TIEMPO_FRASE = parseFloat(tiempoFraseInput.value) * 1000; });
+    tiempoLetrasInput.addEventListener("change", () => { TIEMPO_ENTRE_LETRAS = parseInt(tiempoLetrasInput.value); });
+    toggleAutocorrector.addEventListener("click", () => {
+      const toggleSwitch = toggleAutocorrector.querySelector(".toggle-switch");
+      toggleSwitch.classList.toggle("active");
+      autocorrectorActivo = !autocorrectorActivo;
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      setTimeout(() => document.getElementById("main-wrapper").classList.add("visible"), 50);
+    });
+
+    // ==================== CONFIGURACIÓN PRINCIPAL ====================
+    const CONFIG = {
+      detectarEspacioPorDesaparicion: true,
+      TIEMPO_SILENCIO: 2500,
+      TIEMPO_FRASE: 4000,
+      API_URL: "https://senia-api.onrender.com/predecir",
+      SECUENCIA_LEN: 20,
+      DIM_DINAMICO: 135,
+    };
+
+    let palabraActual = "";
+    let fraseActual = "";
+    let ultimaLetra = "";
+    let ultimoTiempo = Date.now();
+    let manoVisible = false;
+    let vozActivada = false;
+    let bufferLetras = [];
+    const BUFFER_SIZE = 5;
+    let ultimoIngreso = 0;
+    let TIEMPO_ENTRE_LETRAS = 700;
+
+    let bufferSecuencia = [];
+    let ultimoFrame = null;
+
+    // Elementos DOM
+    const videoElement = document.querySelector(".input_video");
+    const canvasElement = document.querySelector(".output_canvas");
+    const resultadoDiv = document.getElementById("resultado");
+    const palabraDiv = document.getElementById("palabra");
+    const fraseDiv = document.getElementById("frase");
+    const ctx = canvasElement.getContext("2d");
+
+    // Etiquetas estáticas (para el modelo estático)
+    const letras = ["A","B","C","D","E","F","G","H","I","L","M","N","O","P","R","S","T","U","V","W","Y"];
+
+    let mostrarPuntos = false;
+    let camaraFrontal = true;
+    let cameraInstance = null;
+    let handsInstance = null;
+    let faceMeshInstance = null;
+    let sistemaIniciado = false;
+
+    canvasElement.width = 640;
+    canvasElement.height = 480;
+
+    const CONEXIONES_MANO = [
+      [0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],
+      [0,9],[9,10],[10,11],[11,12],[0,13],[13,14],[14,15],[15,16],
+      [0,17],[17,18],[18,19],[19,20],
+    ];
+
+    function dibujarLandmarks(landmarks) {
+      if (!landmarks || landmarks.length === 0) return;
+      ctx.save();
+      ctx.scale(-1,1);
+      ctx.translate(-canvasElement.width, 0);
+      ctx.strokeStyle = "#2de0d4";
+      ctx.fillStyle = "#ffffff";
+      ctx.lineWidth = 3;
+      CONEXIONES_MANO.forEach(([i,j]) => {
+        const p1 = landmarks[i];
+        const p2 = landmarks[j];
+        ctx.beginPath();
+        ctx.moveTo(p1.x * canvasElement.width, p1.y * canvasElement.height);
+        ctx.lineTo(p2.x * canvasElement.width, p2.y * canvasElement.height);
+        ctx.stroke();
+      });
+      landmarks.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x * canvasElement.width, p.y * canvasElement.height, 4, 0, 2*Math.PI);
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+    function limpiarCanvas() { ctx.clearRect(0,0,canvasElement.width,canvasElement.height); }
+    function togglePuntos() {
+      mostrarPuntos = !mostrarPuntos;
+      const btn = document.getElementById("togglePuntos");
+      if (mostrarPuntos) {
+        btn.innerHTML = '<i class="bi bi-dot"></i> Ocultar Puntos';
+        canvasElement.style.display = "block";
+      } else {
+        btn.innerHTML = '<i class="bi bi-dot"></i> Mostrar Puntos';
+        canvasElement.style.display = "none";
+        limpiarCanvas();
+      }
+    }
+    async function cambiarCamara() {
+      if (!cameraInstance) return;
+      await cameraInstance.stop();
+      camaraFrontal = !camaraFrontal;
+      cameraInstance = new Camera(videoElement, {
+        onFrame: async () => {
+          await handsInstance.send({ image: videoElement });
+          await faceMeshInstance.send({ image: videoElement });
+        },
+        width: 640, height: 480,
+        facingMode: camaraFrontal ? "user" : "environment"
+      });
+      await cameraInstance.start();
+      document.getElementById("toggleCamara").innerHTML = camaraFrontal ? '<i class="bi bi-camera-video"></i> Cámara Trasera' : '<i class="bi bi-camera-video"></i> Cámara Frontal';
+    }
+
+    // Sistema de voz y corrección
+    function hablar(texto) {
+      if (!vozActivada) return;
+      speechSynthesis.cancel();
+      const mensaje = new SpeechSynthesisUtterance(texto);
+      const voces = speechSynthesis.getVoices();
+      const voz = voces.find(v => v.lang.includes("es"));
+      if (voz) mensaje.voice = voz;
+      mensaje.lang = "es-MX";
+      mensaje.rate = 0.9;
+      mensaje.pitch = 1;
+      speechSynthesis.speak(mensaje);
+    }
+    async function corregir(texto) {
+      if (!autocorrectorActivo) return texto;
+      const params = new URLSearchParams();
+      params.append("text", texto);
+      params.append("language", "es");
+      try {
+        const res = await fetch("https://api.languagetool.org/v2/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: params
+        });
+        const data = await res.json();
+        let textoCorregido = texto;
+        data.matches.forEach(match => {
+          if (match.replacements.length > 0) {
+            const original = match.context.text.substr(match.context.offset, match.context.length);
+            const sugerencia = match.replacements[0].value;
+            textoCorregido = textoCorregido.replace(original, sugerencia);
           }
+        });
+        return textoCorregido;
+      } catch(e) { return texto; }
+    }
+    async function procesarFrase(frase) {
+      const fraseCorregida = await corregir(frase);
+      fraseDiv.innerText = fraseCorregida;
+      hablar(fraseCorregida);
+    }
 
-          palabraActual = "";
-          ultimaLetra = "";
-          palabraDiv.innerText = "";
-          fraseDiv.innerText = fraseActual;
+    // ==================== CORRECCIONES LOCALES (AST y UV) ====================
+    // (estas funciones son las mismas que tenías en tu código original)
+    function corregirAST(letra, lm) {
+      if (!["A", "S", "T"].includes(letra)) return letra;
+      const thumb_tip = lm[4];
+      const thumb_ip = lm[3];
+      const index_tip = lm[8];
+      const middle_tip = lm[12];
+      const index_mcp = lm[5];
+      const wrist = lm[0];
+      // A = pulgar afuera
+      let pulgarAfuera = index_mcp.x > wrist.x ? thumb_tip.x > index_mcp.x : thumb_tip.x < index_mcp.x;
+      if (pulgarAfuera) return "A";
+      const minX = Math.min(index_tip.x, middle_tip.x);
+      const maxX = Math.max(index_tip.x, middle_tip.x);
+      const entreDedos = thumb_tip.x > minX - 0.03 && thumb_tip.x < maxX + 0.03;
+      const dx = thumb_tip.x - thumb_ip.x;
+      const dy = thumb_tip.y - thumb_ip.y;
+      const esVertical = Math.abs(dy) > Math.abs(dx);
+      const esHorizontal = Math.abs(dx) > Math.abs(dy);
+      if (entreDedos && esVertical) return "T";
+      if (esHorizontal) return "S";
+      return letra;
+    }
+    function corregirUV(letra, lm) {
+      if (!["U", "V"].includes(letra)) return letra;
+      const index = lm[8];
+      const middle = lm[12];
+      const distancia = Math.abs(index.x - middle.x);
+      return distancia < 0.06 ? "U" : "V";
+    }
+
+    // ==================== EXTRACCIÓN DE 135 PUNTOS ====================
+    function extraerLandmarks135(handsResult, faceResult) {
+      let landmarks = [];
+      // Manos (hasta 2)
+      let handsDetected = [];
+      if (handsResult.multiHandLandmarks) {
+        for (let hand of handsResult.multiHandLandmarks) {
+          let singleHand = [];
+          for (let lm of hand.landmark) {
+            singleHand.push(lm.x, lm.y, lm.z);
+          }
+          handsDetected.push(singleHand);
         }
       }
-
-      function limpiarCanvas() {
-        ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      if (handsDetected.length === 2) {
+        landmarks.push(...handsDetected[0]);
+        landmarks.push(...handsDetected[1]);
+      } else if (handsDetected.length === 1) {
+        landmarks.push(...handsDetected[0]);
+        landmarks.push(...new Array(63).fill(0));
+      } else {
+        landmarks.push(...new Array(126).fill(0));
       }
-
-      // Controles de puntos y cámara
-      function togglePuntos() {
-        mostrarPuntos = !mostrarPuntos;
-        const btn = document.getElementById("togglePuntos");
-        if (mostrarPuntos) {
-          btn.innerHTML = '<i class="bi bi-dot"></i> Ocultar Puntos';
-          canvasElement.style.display = "block";
-        } else {
-          btn.innerHTML = '<i class="bi bi-dot"></i> Mostrar Puntos';
-          canvasElement.style.display = "none";
-          limpiarCanvas();
+      // Cara (3 puntos: nariz, ojo izquierdo, ojo derecho)
+      const faceIndices = [1, 33, 263];
+      if (faceResult.multiFaceLandmarks && faceResult.multiFaceLandmarks.length > 0) {
+        const face = faceResult.multiFaceLandmarks[0];
+        for (let idx of faceIndices) {
+          const lm = face.landmark[idx];
+          landmarks.push(lm.x, lm.y, lm.z);
         }
+      } else {
+        landmarks.push(...new Array(9).fill(0));
       }
-
-      async function cambiarCamara() {
-        if (!cameraInstance) return;
-        try {
-          await cameraInstance.stop();
-          camaraFrontal = !camaraFrontal;
-          cameraInstance = new Camera(videoElement, {
-            onFrame: async () => {
-              await handsInstance.send({ image: videoElement });
-            },
-            width: 640,
-            height: 480,
-            facingMode: camaraFrontal ? "user" : "environment",
-          });
-          await cameraInstance.start();
-          document.getElementById("toggleCamara").innerHTML = camaraFrontal
-            ? '<i class="bi bi-camera-video"></i> Cámara Trasera'
-            : '<i class="bi bi-camera-video"></i> Cámara Frontal';
-        } catch (error) {
-          console.error("Error cambiando cámara:", error);
-          alert("No se pudo cambiar la cámara: " + error.message);
-        }
+      if (landmarks.length !== 135) {
+        console.warn("Landmarks length incorrecto:", landmarks.length);
+        return new Array(135).fill(0);
       }
+      return landmarks;
+    }
 
-      // Sistema de voz
-      function hablar(texto) {
-        if (!vozActivada) return;
-        speechSynthesis.cancel();
-        const mensaje = new SpeechSynthesisUtterance(texto);
-        const voces = speechSynthesis.getVoices();
-        const voz = voces.find((v) => v.lang.includes("es"));
-        if (voz) mensaje.voice = voz;
-        mensaje.lang = "es-MX";
-        mensaje.rate = 0.9;
-        mensaje.pitch = 1;
-        speechSynthesis.speak(mensaje);
+    // ==================== PROCESAMIENTO DE PREDICCIÓN ====================
+    function procesarPrediccion(letra) {
+      const ahora = Date.now();
+      bufferLetras.push(letra);
+      if (bufferLetras.length > BUFFER_SIZE) bufferLetras.shift();
+      const estable = bufferLetras.every(l => l === bufferLetras[0]);
+      if (!estable) return;
+      const letraFinal = bufferLetras[0];
+      if (ahora - ultimoIngreso < TIEMPO_ENTRE_LETRAS) return;
+      palabraActual += letraFinal;
+      ultimaLetra = letraFinal;
+      ultimoIngreso = ahora;
+      ultimoTiempo = ahora;
+      palabraDiv.innerText = palabraActual;
+      resultadoDiv.innerText = letraFinal;
+      resultadoDiv.style.boxShadow = "0 0 30px var(--primary)";
+      setTimeout(() => resultadoDiv.style.boxShadow = "0 0 20px var(--primary-glow)", 200);
+    }
+    function terminarPalabra() {
+      if (palabraActual.length > 0) {
+        fraseActual += palabraActual + " ";
+        palabraActual = "";
+        ultimaLetra = "";
+        palabraDiv.innerText = "";
+        fraseDiv.innerText = fraseActual;
       }
-
-      // Corrección ortográfica
-      async function corregir(texto) {
-        if (!autocorrectorActivo) return texto;
-
-        const params = new URLSearchParams();
-        params.append("text", texto);
-        params.append("language", "es");
-        try {
-          const res = await fetch("https://api.languagetool.org/v2/check", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: params,
-          });
-          const data = await res.json();
-          let textoCorregido = texto;
-          data.matches.forEach((match) => {
-            if (match.replacements.length > 0) {
-              const original = match.context.text.substr(
-                match.context.offset,
-                match.context.length,
-              );
-              const sugerencia = match.replacements[0].value;
-              textoCorregido = textoCorregido.replace(original, sugerencia);
-            }
-          });
-          return textoCorregido;
-        } catch (e) {
-          console.error("Error en corrección:", e);
-          return texto;
-        }
+    }
+    setInterval(() => {
+      if (palabraActual.length > 0 && Date.now() - ultimoTiempo > CONFIG.TIEMPO_SILENCIO) terminarPalabra();
+    }, 500);
+    setInterval(() => {
+      if (fraseActual.length > 0 && Date.now() - ultimoTiempo > CONFIG.TIEMPO_FRASE) {
+        procesarFrase(fraseActual);
+        fraseActual = "";
+        fraseDiv.innerText = "";
       }
+    }, 1000);
 
-      // Procesar frase
-      async function procesarFrase(frase) {
-        console.log("Procesando frase:", frase);
-        const fraseCorregida = await corregir(frase);
-        fraseDiv.innerText = fraseCorregida;
-        hablar(fraseCorregida);
+    function actualizarMedidor(porcentaje, letra) {
+      const confidenceMeter = document.getElementById("confidenceMeter");
+      if (porcentaje <= 70) {
+        confidenceMeter.style.opacity = "0";
+        confidenceMeter.style.pointerEvents = "none";
+        return;
       }
-      // ================= CORRECCIONES INTELIGENTES =================
+      const meterPercent = document.getElementById("meterPercent");
+      meterPercent.textContent = porcentaje;
+      let color = porcentaje < 80 ? "#ffd93d" : "var(--primary)";
+      confidenceMeter.style.borderColor = color;
+      meterPercent.style.color = color;
+      const progress = porcentaje * 3.6 + "deg";
+      confidenceMeter.style.setProperty("--progress", progress);
+      confidenceMeter.style.opacity = "1";
+      confidenceMeter.style.pointerEvents = "auto";
+      confidenceMeter.classList.remove("updated");
+      setTimeout(() => confidenceMeter.classList.add("updated"), 10);
+    }
 
-      // A / S / T
-      function angulo(a, b, c) {
-        const ab = [a.x - b.x, a.y - b.y];
-        const cb = [c.x - b.x, c.y - b.y];
-
-        const dot = ab[0] * cb[0] + ab[1] * cb[1];
-        const magAB = Math.hypot(ab[0], ab[1]);
-        const magCB = Math.hypot(cb[0], cb[1]);
-
-        const cos = dot / (magAB * magCB);
-        return Math.acos(cos) * (180 / Math.PI);
-      }
-
-      function corregirAST(letra, lm) {
-        if (!["A", "S", "T"].includes(letra)) return letra;
-
-        const thumb_tip = lm[4];
-        const thumb_ip = lm[3]; // 🔥 para dirección del pulgar
-        const index_tip = lm[8];
-        const middle_tip = lm[12];
-        const index_mcp = lm[5];
-        const wrist = lm[0];
-
-        // 🔥 A = pulgar afuera
-        let pulgarAfuera =
-          index_mcp.x > wrist.x
-            ? thumb_tip.x > index_mcp.x
-            : thumb_tip.x < index_mcp.x;
-
-        if (pulgarAfuera) {
-          const confidence = 90 + Math.random() * 10;
-          actualizarMedidor(Math.round(confidence), "A");
-          return "A";
-        }
-
-        // ==============================
-        // 🧠 1. ¿Pulgar ENTRE índice y medio?
-        // ==============================
-        const minX = Math.min(index_tip.x, middle_tip.x);
-        const maxX = Math.max(index_tip.x, middle_tip.x);
-
-        const entreDedos =
-          thumb_tip.x > minX - 0.03 && thumb_tip.x < maxX + 0.03;
-
-        // ==============================
-        // 🧠 2. ORIENTACIÓN del pulgar
-        // ==============================
-        const dx = thumb_tip.x - thumb_ip.x;
-        const dy = thumb_tip.y - thumb_ip.y;
-
-        const esVertical = Math.abs(dy) > Math.abs(dx); // 🔥 clave
-        const esHorizontal = Math.abs(dx) > Math.abs(dy);
-
-        // ==============================
-        // 🔥 T = ENTRE dedos + VERTICAL
-        // ==============================
-        if (entreDedos && esVertical) {
-          const confidence = 90 + Math.random() * 10;
-          actualizarMedidor(Math.round(confidence), "T");
-          return "T";
-        }
-
-        // ==============================
-        // 🔥 S = pulgar horizontal encima
-        // ==============================
-        if (esHorizontal) {
-          const confidence = 90 + Math.random() * 10;
-          actualizarMedidor(Math.round(confidence), "S");
-          return "S";
-        }
-
-        return letra;
-      }
-      // U / V
-      function corregirUV(letra, lm) {
-        // 🔥 SOLO si el modelo cree que es U o V
-        if (!["U", "V"].includes(letra)) return letra;
-
-        const index = lm[8];
-        const middle = lm[12];
-
-        const distancia = Math.abs(index.x - middle.x);
-
-        const letraCorregida = distancia < 0.06 ? "U" : "V";
-        const confidence = 90 + Math.random() * 10;
-        actualizarMedidor(Math.round(confidence), letraCorregida);
-
-        return letraCorregida;
-      }
-
-      // 🎯 Actualizar medidor de confianza
-      function actualizarMedidor(porcentaje, letra) {
-        const confidenceMeter = document.getElementById("confidenceMeter");
-
-        // Solo mostrar si porcentaje > 70%
-        if (porcentaje <= 70) {
-          confidenceMeter.style.opacity = "0";
-          confidenceMeter.style.pointerEvents = "none";
-          return;
-        }
-
-        const meterPercent = document.getElementById("meterPercent");
-
-        // Actualizar porcentaje
-        meterPercent.textContent = porcentaje;
-
-        // Definir color según confianza
-        let color = "var(--primary)"; // Verde por defecto
-        if (porcentaje < 80) {
-          confidenceMeter.style.borderColor = "#ffd93d";
-          color = "#ffd93d"; // Amarillo medio
-        } else {
-          confidenceMeter.style.borderColor = "var(--primary)";
-          color = "var(--primary)"; // Verde alto
-        }
-
-        meterPercent.style.color = color;
-
-        // Actualizar anillo de progreso
-        const progress = porcentaje * 3.6 + "deg";
-        confidenceMeter.style.setProperty("--progress", progress);
-
-        // Mostrar medidor con animación
-        confidenceMeter.style.opacity = "1";
-        confidenceMeter.style.pointerEvents = "auto";
-
-        // Animación de pulso
-        confidenceMeter.classList.remove("updated");
-        setTimeout(() => {
-          confidenceMeter.classList.add("updated");
-        }, 10);
-      }
-
-      // Procesar predicción de letra
-      function procesarPrediccion(letra) {
-        const ahora = Date.now();
-
-        bufferLetras.push(letra);
-        if (bufferLetras.length > BUFFER_SIZE) bufferLetras.shift();
-
-        const estable = bufferLetras.every((l) => l === bufferLetras[0]);
-        if (!estable) return;
-
-        const letraFinal = bufferLetras[0];
-
-        // 🔥 CONTROL DE TIEMPO (ANTI-SPAM)
-        if (ahora - ultimoIngreso < TIEMPO_ENTRE_LETRAS) return;
-
-        palabraActual += letraFinal;
-        ultimaLetra = letraFinal;
-        ultimoIngreso = ahora;
-        ultimoTiempo = ahora;
-
-        palabraDiv.innerText = palabraActual;
-        resultadoDiv.innerText = letraFinal;
-
-        resultadoDiv.style.boxShadow = "0 0 30px var(--primary)";
-        setTimeout(() => {
-          resultadoDiv.style.boxShadow = "0 0 20px var(--primary-glow)";
-        }, 200);
-      }
-
-      // Detección de pausas
-      setInterval(() => {
-        const ahora = Date.now();
-        if (
-          palabraActual.length > 0 &&
-          ahora - ultimoTiempo > CONFIG.TIEMPO_SILENCIO
-        ) {
-          terminarPalabra();
-        }
-      }, 500);
-
-      setInterval(() => {
-        const ahora = Date.now();
-        if (
-          fraseActual.length > 0 &&
-          ahora - ultimoTiempo > CONFIG.TIEMPO_FRASE
-        ) {
-          procesarFrase(fraseActual);
-          fraseActual = "";
-          fraseDiv.innerText = "";
-        }
-      }, 1000);
-
-      // Envío a la API
-      async function enviarPrediccion(puntos) {
+    // Envío al backend (con secuencia)
+    async function enviarSecuencia() {
+      if (bufferSecuencia.length < CONFIG.SECUENCIA_LEN) return;
+      try {
         const response = await fetch(CONFIG.API_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({ puntos: puntos }),
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            puntos: ultimoFrame || [],
+            secuencia: bufferSecuencia
+          })
         });
-        if (!response.ok) throw new Error(`Error API: ${response.status}`);
-        return await response.json();
+        const data = await response.json();
+        // Si el backend devuelve "signo" (modelo dinámico)
+        if (data.signo && data.confianza > 70) {
+          procesarPrediccion(data.signo);
+          actualizarMedidor(data.confianza, data.signo);
+        }
+        // Si devuelve "indice" (modelo estático) -> aplicar correcciones locales
+        else if (data.indice !== undefined && data.indice !== -1 && data.indice < letras.length) {
+          let letra = letras[data.indice];
+          // Necesitamos los landmarks de la mano actual para las correcciones
+          if (ultimoFrame && ultimoFrame.length >= 63) {
+            // Reconstruir landmarks (primeros 63 puntos)
+            const lm = [];
+            for (let i = 0; i < 21; i++) {
+              lm.push({ x: ultimoFrame[i*3], y: ultimoFrame[i*3+1], z: ultimoFrame[i*3+2] });
+            }
+            letra = corregirAST(letra, lm);
+            letra = corregirUV(letra, lm);
+          }
+          procesarPrediccion(letra);
+          actualizarMedidor(data.confianza, letra);
+        } else {
+          console.warn("Respuesta inesperada:", data);
+        }
+      } catch (error) {
+        console.error("Error en predicción:", error);
+        resultadoDiv.textContent = "Error API";
       }
+    }
 
-      // Inicialización del sistema MediaPipe
-      async function iniciarSistema() {
-        if (sistemaIniciado) return;
-        try {
-          sistemaIniciado = true;
-          resultadoDiv.textContent = "Iniciando...";
+    // ==================== INICIALIZACIÓN DE MEDIAPIPE ====================
+    async function iniciarSistema() {
+      if (sistemaIniciado) return;
+      try {
+        sistemaIniciado = true;
+        resultadoDiv.textContent = "Iniciando...";
 
-          handsInstance = new Hands({
-            locateFile: (file) =>
-              `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
-          });
+        handsInstance = new Hands({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+        handsInstance.setOptions({
+          maxNumHands: 2,
+          modelComplexity: 0,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
 
-          handsInstance.setOptions({
-            maxNumHands: 1,
-            modelComplexity: 0,
-            minDetectionConfidence: 0.6,
-            minTrackingConfidence: 0.6,
-          });
+        faceMeshInstance = new FaceMesh({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+        });
+        faceMeshInstance.setOptions({
+          maxNumFaces: 1,
+          refineLandmarks: false,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
 
-          let ultimoTiempoPrediccion = 0;
-          const intervaloMinimo = 400;
+        let ultimoEnvio = 0;
+        const intervaloEnvio = 400; // ms
 
-          handsInstance.onResults(async (results) => {
+        // Guardar los resultados de Hands para usarlos junto con FaceMesh
+        let latestHands = null;
+        handsInstance.onResults((results) => { latestHands = results; });
+        faceMeshInstance.onResults(async (faceResults) => {
+          if (!latestHands) return;
+          const ahora = Date.now();
+          const landmarks135 = extraerLandmarks135(latestHands, faceResults);
+          ultimoFrame = landmarks135;
+          bufferSecuencia.push(landmarks135);
+          if (bufferSecuencia.length > CONFIG.SECUENCIA_LEN) bufferSecuencia.shift();
+
+          if (ahora - ultimoEnvio >= intervaloEnvio) {
+            ultimoEnvio = ahora;
+            await enviarSecuencia();
+          }
+
+          // Dibujar puntos si está activado (solo de la primera mano)
+          if (mostrarPuntos && latestHands.multiHandLandmarks && latestHands.multiHandLandmarks.length > 0) {
             ctx.save();
             ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
-            const ahora = Date.now();
-
-            if (
-              results.multiHandLandmarks &&
-              results.multiHandLandmarks.length > 0
-            ) {
-              manoVisible = true;
-
-              if (mostrarPuntos) {
-                dibujarLandmarks(results.multiHandLandmarks[0]);
-              }
-
-              if (ahora - ultimoTiempoPrediccion < intervaloMinimo) {
-                ctx.restore();
-                return;
-              }
-
-              const landmarks = results.multiHandLandmarks[0];
-              const puntos = [];
-              landmarks.forEach((p) => puntos.push(p.x, p.y, p.z));
-
-              try {
-                const data = await enviarPrediccion(puntos);
-                if (data.indice >= 0 && data.indice < letras.length) {
-                  let letra = letras[data.indice];
-
-                  // 🎯 ACTUALIZAR EL MEDIDOR DE CONFIANZA
-                  const confidencePercent = Math.round(data.confianza);
-                  actualizarMedidor(confidencePercent, letra);
-
-                  // 🔥 APLICAR CORRECCIONES
-                  letra = corregirAST(letra, landmarks);
-                  letra = corregirUV(letra, landmarks);
-
-                  procesarPrediccion(letra);
-                }
-                ultimoTiempoPrediccion = ahora;
-              } catch (error) {
-                console.error("Error:", error);
-                resultadoDiv.textContent = "Error API";
-              }
-            } else {
-              manoVisible = false;
-              /* if (
-                CONFIG.detectarEspacioPorDesaparicion &&
-                palabraActual.length > 0
-              ) {
-                terminarPalabra();
-              } */
-              resultadoDiv.textContent = "✋ Muestra tu mano";
-              resultadoDiv.style.boxShadow = "none";
-            }
+            dibujarLandmarks(latestHands.multiHandLandmarks[0]);
             ctx.restore();
-          });
-
-          cameraInstance = new Camera(videoElement, {
-            onFrame: async () => {
-              await handsInstance.send({ image: videoElement });
-            },
-            width: 640,
-            height: 480,
-            facingMode: "user",
-          });
-
-          await cameraInstance.start();
-          resultadoDiv.textContent = "✅ ¡Listo! Muestra tu mano";
-
-          // Configurar botones
-          document
-            .getElementById("togglePuntos")
-            .addEventListener("click", togglePuntos);
-          document
-            .getElementById("toggleCamara")
-            .addEventListener("click", cambiarCamara);
-          document
-            .getElementById("activarVoz")
-            .addEventListener("click", () => {
-              vozActivada = true;
-              hablar("Sistema de voz activado");
-              const btnVoz = document.getElementById("activarVoz");
-              btnVoz.style.background = "#00aa00";
-              btnVoz.style.borderColor = "#ffffff";
-            });
-
-          console.log("✅ Sistema iniciado");
-        } catch (error) {
-          console.error("Error crítico:", error);
-          resultadoDiv.textContent = "❌ Error al iniciar";
-          sistemaIniciado = false;
-          if (error.name === "NotAllowedError") {
-            alert("Permiso de cámara denegado. Recarga y permite acceso.");
-          } else if (error.name === "NotFoundError") {
-            alert("No se encontró cámara.");
           } else {
-            alert("Error: " + error.message);
+            limpiarCanvas();
           }
-        }
+        });
+
+        cameraInstance = new Camera(videoElement, {
+          onFrame: async () => {
+            await handsInstance.send({ image: videoElement });
+            await faceMeshInstance.send({ image: videoElement });
+          },
+          width: 640, height: 480,
+          facingMode: "user"
+        });
+        await cameraInstance.start();
+        resultadoDiv.textContent = "✅ ¡Listo! Muestra tu mano";
+
+        // Configurar botones
+        document.getElementById("togglePuntos").addEventListener("click", togglePuntos);
+        document.getElementById("toggleCamara").addEventListener("click", cambiarCamara);
+        document.getElementById("activarVoz").addEventListener("click", () => {
+          vozActivada = true;
+          hablar("Sistema de voz activado");
+          document.getElementById("activarVoz").style.background = "#00aa00";
+        });
+
+        console.log("✅ Sistema iniciado con detección de dos manos y cara");
+      } catch (error) {
+        console.error("Error crítico:", error);
+        resultadoDiv.textContent = "❌ Error al iniciar";
+        sistemaIniciado = false;
+        alert(error.message);
       }
+    }
 
-      // Eventos de inicio
-      document.addEventListener(
-        "click",
-        (e) => {
-          // No iniciar si hace click en el panel de configuración
-          if (configPanel && configPanel.contains(e.target)) {
-            return;
-          }
-          if (!sistemaIniciado) iniciarSistema();
-        },
-        { once: true },
-      );
-
-      document.addEventListener("keydown", (e) => {
-        if (e.code === "Space" && !sistemaIniciado) iniciarSistema();
-      });
-
-      // Precargar voces
-      window.speechSynthesis.onvoiceschanged = () => {
-        console.log("Voces cargadas:", speechSynthesis.getVoices().length);
-      };
-    </script>
-  </body>
+    // Eventos de inicio
+    document.addEventListener("click", (e) => {
+      if (configPanel && configPanel.contains(e.target)) return;
+      if (!sistemaIniciado) iniciarSistema();
+    }, { once: true });
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && !sistemaIniciado) iniciarSistema();
+    });
+    window.speechSynthesis.onvoiceschanged = () => console.log("Voces cargadas");
+  </script>
+</body>
 </html>
 
 
