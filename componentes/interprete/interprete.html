@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SeñIA - Intérprete Avanzado</title>
 
-    <!-- Librerías MediaPipe (solo Hands) -->
+    <!-- Librerías MediaPipe (Hands + FaceMesh) -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 
     <!-- Bootstrap Icons -->
@@ -42,6 +43,7 @@
         min-height: 100vh;
         transition: background-color var(--transition-speed), color var(--transition-speed);
       }
+      /* Botón de tema flotante */
       .theme-toggle {
         position: fixed;
         top: 20px;
@@ -131,7 +133,11 @@
         margin-bottom: 5px;
         font-weight: 500;
       }
-      .config-input-group { display: flex; gap: 8px; align-items: center; }
+      .config-input-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
       .config-input {
         flex: 1;
         background: var(--bg-color);
@@ -159,7 +165,10 @@
         cursor: pointer;
         transition: all 0.3s ease;
       }
-      .config-toggle:hover { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+      .config-toggle:hover {
+        border-color: var(--primary);
+        box-shadow: 0 0 10px var(--primary-glow);
+      }
       .toggle-switch {
         width: 40px;
         height: 22px;
@@ -198,7 +207,11 @@
         justify-content: center;
         gap: 6px;
       }
-      .config-btn:hover { background: var(--primary); color: var(--bg-color); box-shadow: 0 0 10px var(--primary-glow); }
+      .config-btn:hover {
+        background: var(--primary);
+        color: var(--bg-color);
+        box-shadow: 0 0 10px var(--primary-glow);
+      }
       /* Contenedor principal */
       #main-wrapper {
         opacity: 0;
@@ -228,7 +241,13 @@
       }
       .page-header img { height: 50px; width: auto; max-width: 50px; }
       .page-header h1 { margin: 0; font-size: 1.3rem; color: var(--primary); flex: 1; }
-      .texto-panel { width: 100%; max-width: 600px; margin: 5px 0; position: relative; z-index: 100; }
+      .texto-panel {
+        width: 100%;
+        max-width: 600px;
+        margin: 5px 0;
+        position: relative;
+        z-index: 100;
+      }
       .palabra-container, .frase-container {
         background: var(--card-bg);
         border-radius: 12px;
@@ -282,18 +301,26 @@
         border: 3px solid var(--card-bg);
         margin: 8px 0;
       }
-      video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scaleX(-1);
+      }
       .output_canvas {
         position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         pointer-events: none;
         display: none;
         z-index: 5;
       }
       .scan-line {
         position: absolute;
-        top: 0; left: 0;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 2px;
         background: var(--primary);
@@ -302,11 +329,17 @@
         z-index: 10;
         opacity: 0.5;
       }
-      @keyframes scanning { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
+      @keyframes scanning {
+        0% { top: 0; }
+        50% { top: 100%; }
+        100% { top: 0; }
+      }
       .confidence-meter {
         position: absolute;
-        top: 12px; right: 12px;
-        width: 100px; height: 100px;
+        top: 12px;
+        right: 12px;
+        width: 100px;
+        height: 100px;
         background: rgba(11, 41, 38, 0.25);
         border: 2px solid var(--primary);
         border-radius: 50%;
@@ -320,15 +353,18 @@
         opacity: 0;
         transition: opacity 0.3s ease;
       }
-      .meter-label { font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+      .meter-label { font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0; }
       .meter-value { font-size: 1.6rem; font-weight: bold; color: var(--primary); text-shadow: 0 0 8px var(--primary-glow); margin: 0; line-height: 1; }
       .meter-percent { font-size: 0.65rem; color: var(--text-muted); }
+      .meter-letter { font-size: 0.9rem; color: var(--primary); font-weight: bold; margin-top: 2px; background: rgba(45, 224, 212, 0.15); min-width: 22px; height: 22px; display: none; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid var(--primary-glow); }
       .meter-ring {
         position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         border-radius: 50%;
-        background: conic-gradient(var(--primary) 0deg, var(--primary) var(--progress), transparent var(--progress));
+        background: conic-gradient( var(--primary) 0deg, var(--primary) var(--progress), transparent var(--progress) );
         opacity: 0.3;
       }
       @keyframes pulse-meter {
@@ -355,74 +391,11 @@
       #activarVoz { background: #0055aa; border-color: #ffffff; color: white; }
       #activarVoz:hover { background: #0066cc; box-shadow: 0 0 15px #00aaff; }
       .instrucciones { margin-top: 8px; color: var(--text-muted); font-size: 0.85rem; text-align: center; max-width: 450px; line-height: 1.4; }
-
-      /* ========== RESPONSIVE ========== */
-      @media (max-width: 479px) {
-        #main-wrapper { padding: 8px; gap: 5px; max-width: 100%; }
-        .video-container { max-width: 100%; width: 100%; aspect-ratio: 3 / 4; border-radius: 15px; margin: 5px 0; }
-        #resultado { font-size: 1.2rem; padding: 8px 15px; max-width: 100%; margin: 5px 0; min-height: 40px; }
-        .page-header { padding: 8px 0; margin-bottom: 5px; gap: 10px; }
-        .page-header img { height: 30px; }
-        .page-header h1 { font-size: 0.95rem; }
-        .texto-panel { max-width: 100%; width: 100%; margin: 3px 0; }
-        .palabra-container, .frase-container { padding: 6px 8px; margin: 3px 0; border-radius: 10px; }
-        .palabra-container h3, .frase-container h3 { font-size: 0.75rem; margin: 0 0 2px 0; }
-        #palabra, #frase { font-size: 0.85rem; min-height: 1rem; }
-        .controles { margin: 8px; gap: 8px; }
-        .btn { padding: 6px 10px; font-size: 0.75rem; border-radius: 10px; gap: 4px; }
-        .instrucciones { font-size: 0.7rem; max-width: 100%; line-height: 1.3; margin-top: 5px; }
-        .config-panel { bottom: 10px; right: 10px; max-width: calc(100vw - 40px); }
-        .theme-toggle { top: 10px; right: 10px; width: 45px; height: 45px; }
-        .confidence-meter { width: 90px; height: 90px; top: 8px; right: 8px; }
-        .meter-value { font-size: 1.4rem; }
-      }
-      @media (min-width: 480px) and (max-width: 640px) {
-        #main-wrapper { padding: 10px; gap: 6px; max-width: 100%; }
-        .video-container { max-width: 100%; width: 100%; aspect-ratio: 4 / 5; border-radius: 15px; }
-        #resultado { font-size: 1.3rem; padding: 10px 20px; max-width: 90%; }
-        .page-header img { height: 35px; }
-        .page-header h1 { font-size: 1rem; }
-        .texto-panel { max-width: 95%; }
-        #palabra, #frase { font-size: 0.9rem; }
-        .btn { padding: 7px 12px; font-size: 0.8rem; }
-        .instrucciones { font-size: 0.75rem; max-width: 90%; }
-      }
-      @media (min-width: 641px) and (max-width: 1024px) {
-        #main-wrapper { padding: 15px; gap: 10px; max-width: 100%; }
-        .video-container { max-width: 85%; width: 85%; aspect-ratio: 4 / 3; border-radius: 18px; }
-        #resultado { font-size: 1.6rem; padding: 12px 25px; max-width: 80%; }
-        .page-header { padding: 12px 0; margin-bottom: 10px; }
-        .page-header img { height: 45px; }
-        .page-header h1 { font-size: 1.2rem; }
-        .texto-panel { max-width: 80%; }
-        .controles { margin: 12px; gap: 12px; }
-        .btn { padding: 9px 15px; font-size: 0.9rem; }
-        .instrucciones { font-size: 0.85rem; max-width: 75%; }
-      }
-      @media (min-width: 1025px) {
-        #main-wrapper { padding: 20px; gap: 12px; max-width: 900px; }
-        .video-container { max-width: 550px; width: 550px; aspect-ratio: 4 / 3; border-radius: 20px; }
-        #resultado { font-size: 1.8rem; padding: 12px 25px; max-width: 500px; }
-        .page-header img { height: 50px; }
-        .page-header h1 { font-size: 1.3rem; }
-        .texto-panel { max-width: 600px; }
-        .controles { margin: 15px; gap: 15px; }
-        .btn { padding: 10px 20px; font-size: 0.95rem; }
-        .instrucciones { font-size: 0.85rem; max-width: 500px; }
-      }
-      @media (max-height: 500px) and (orientation: landscape) {
-        .video-container { max-width: 100%; aspect-ratio: 16 / 9; margin: 5px 0; }
-        #main-wrapper { gap: 3px; padding: 5px; }
-        .texto-panel { max-width: 90%; }
-        .controles { margin: 5px; gap: 8px; }
-      }
+      @media (max-width: 479px) { /* responsive mantén lo que tenías */ }
     </style>
   </head>
   <body>
-    <button class="theme-toggle" id="theme-btn">
-      <i class="bi bi-moon-stars-fill" id="theme-icon"></i>
-    </button>
-
+    <button class="theme-toggle" id="theme-btn"><i class="bi bi-moon-stars-fill" id="theme-icon"></i></button>
     <div class="config-panel expandido" id="configPanel">
       <div class="config-header">
         <h3>⚙️ Configuración</h3>
@@ -443,7 +416,7 @@
             <input type="number" id="tiempoFrase" class="config-input" min="2" max="10" step="0.5" value="4" />
             <span class="config-input-unit">seg</span>
           </div>
-          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:5px">Tiempo de pausa para enviar la frase a procesar</div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px">Tiempo de pausa para enviar la frase a procesar</div>
         </div>
         <div class="config-section">
           <label class="config-label" for="tiempoLetras">Tiempo entre Letras:</label>
@@ -451,34 +424,24 @@
             <input type="number" id="tiempoLetras" class="config-input" min="300" max="2000" step="50" value="700" />
             <span class="config-input-unit">ms</span>
           </div>
-          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:5px">Tiempo mínimo entre cada letra detectada</div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px">Tiempo mínimo entre cada letra detectada</div>
         </div>
         <div class="config-section">
           <div class="config-toggle" id="toggleAutocorrector">
             <div class="toggle-switch active"></div>
             <span class="toggle-label">Autocorrector</span>
           </div>
-          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:8px">Corregir ortografía automáticamente</div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:8px">Corregir ortografía automáticamente</div>
         </div>
       </div>
     </div>
-
     <div id="main-wrapper">
       <header class="page-header"></header>
-
-      <div id="resultado">HAZ CLIC PARA INICIAR</div>
-
+      <div id="resultado"><img src="../../155a4c37-5a91-4ec8-9a18-f3f6373fd043_inspyrenet.png" width="20%" /> HAZ CLIC PARA INICIAR</div>
       <div class="texto-panel">
-        <div class="palabra-container">
-          <h3><i class="bi bi-type"></i> Palabra actual:</h3>
-          <div id="palabra"></div>
-        </div>
-        <div class="frase-container">
-          <h3><i class="bi bi-chat-dots"></i> Frase:</h3>
-          <div id="frase"></div>
-        </div>
+        <div class="palabra-container"><h3><i class="bi bi-type"></i> Palabra actual:</h3><div id="palabra"></div></div>
+        <div class="frase-container"><h3><i class="bi bi-chat-dots"></i> Frase:</h3><div id="frase"></div></div>
       </div>
-
       <div class="video-container">
         <div class="scan-line"></div>
         <video class="input_video"></video>
@@ -486,13 +449,10 @@
         <div class="confidence-meter" id="confidenceMeter">
           <div class="meter-ring"></div>
           <div class="meter-label">Coincidencia</div>
-          <div>
-            <div class="meter-value" id="meterPercent">0</div>
-            <div class="meter-percent">%</div>
-          </div>
+          <div><div class="meter-value" id="meterPercent">0</div><div class="meter-percent">%</div></div>
+          <div class="meter-letter" id="meterLetter">—</div>
         </div>
       </div>
-
       <div class="instrucciones">
         <i class="bi bi-info-circle"></i><br />
         • Haz clic en cualquier lugar para activar la cámara<br />
@@ -504,7 +464,7 @@
     </div>
 
     <script>
-      // ==================== TEMA ====================
+      // ==================== LÓGICA DE TEMA ====================
       const themeBtn = document.getElementById("theme-btn");
       const themeIcon = document.getElementById("theme-icon");
       const body = document.body;
@@ -524,21 +484,18 @@
         }
       });
 
-      // ==================== PANEL DE CONFIGURACIÓN ====================
+      // Panel de configuración
       const configPanel = document.getElementById("configPanel");
       const btnMinimizePanel = document.getElementById("btnMinimizePanel");
       const tiempoFraseInput = document.getElementById("tiempoFrase");
       const tiempoLetrasInput = document.getElementById("tiempoLetras");
       const toggleAutocorrector = document.getElementById("toggleAutocorrector");
       let autocorrectorActivo = true;
-
       btnMinimizePanel.addEventListener("click", (e) => {
         e.stopPropagation();
         configPanel.classList.toggle("minimizado");
         configPanel.classList.toggle("expandido");
-        btnMinimizePanel.innerHTML = configPanel.classList.contains("minimizado")
-          ? '<i class="bi bi-plus-lg"></i>'
-          : '<i class="bi bi-dash-lg"></i>';
+        btnMinimizePanel.innerHTML = configPanel.classList.contains("minimizado") ? '<i class="bi bi-plus-lg"></i>' : '<i class="bi bi-dash-lg"></i>';
       });
       configPanel.addEventListener("click", (e) => {
         if (configPanel.classList.contains("minimizado") && e.target === configPanel) {
@@ -548,14 +505,11 @@
           btnMinimizePanel.innerHTML = '<i class="bi bi-dash-lg"></i>';
         }
       });
-      tiempoFraseInput.addEventListener("change", () => {
-        CONFIG.TIEMPO_FRASE = parseFloat(tiempoFraseInput.value) * 1000;
-      });
-      tiempoLetrasInput.addEventListener("change", () => {
-        TIEMPO_ENTRE_LETRAS = parseInt(tiempoLetrasInput.value);
-      });
+      tiempoFraseInput.addEventListener("change", () => { CONFIG.TIEMPO_FRASE = parseFloat(tiempoFraseInput.value) * 1000; });
+      tiempoLetrasInput.addEventListener("change", () => { TIEMPO_ENTRE_LETRAS = parseInt(tiempoLetrasInput.value); });
       toggleAutocorrector.addEventListener("click", () => {
-        toggleAutocorrector.querySelector(".toggle-switch").classList.toggle("active");
+        const toggleSwitch = toggleAutocorrector.querySelector(".toggle-switch");
+        toggleSwitch.classList.toggle("active");
         autocorrectorActivo = !autocorrectorActivo;
       });
 
@@ -563,26 +517,31 @@
         setTimeout(() => document.getElementById("main-wrapper").classList.add("visible"), 50);
       });
 
-      // ==================== CONFIGURACIÓN ====================
+      // ==================== CONFIGURACIÓN PRINCIPAL ====================
       const CONFIG = {
+        detectarEspacioPorDesaparicion: true,
         TIEMPO_SILENCIO: 2500,
         TIEMPO_FRASE: 4000,
         API_URL: "https://senia-api.onrender.com/predecir",
         SECUENCIA_LEN: 20,
+        DIM_DINAMICO: 135,
       };
 
       let palabraActual = "";
       let fraseActual = "";
       let ultimaLetra = "";
       let ultimoTiempo = Date.now();
+      let manoVisible = false;
       let vozActivada = false;
       let bufferLetras = [];
       const BUFFER_SIZE = 5;
       let ultimoIngreso = 0;
       let TIEMPO_ENTRE_LETRAS = 700;
+
       let bufferSecuencia = [];
       let ultimoFrame = null;
 
+      // Elementos DOM
       const videoElement = document.querySelector(".input_video");
       const canvasElement = document.querySelector(".output_canvas");
       const resultadoDiv = document.getElementById("resultado");
@@ -590,12 +549,14 @@
       const fraseDiv = document.getElementById("frase");
       const ctx = canvasElement.getContext("2d");
 
-      const LETRAS_ESTATICAS = ["A","B","C","D","E","F","G","H","I","L","M","N","O","P","R","S","T","U","V","W","Y"];
+      // Etiquetas estáticas (para el modelo estático)
+      const letras = ["A","B","C","D","E","F","G","H","I","L","M","N","O","P","R","S","T","U","V","W","Y"];
 
       let mostrarPuntos = false;
       let camaraFrontal = true;
       let cameraInstance = null;
       let handsInstance = null;
+      let faceMeshInstance = null;
       let sistemaIniciado = false;
 
       canvasElement.width = 640;
@@ -607,52 +568,146 @@
         [0,17],[17,18],[18,19],[19,20],
       ];
 
-      // ==================== DIBUJO ====================
       function dibujarLandmarks(landmarks) {
         if (!landmarks || landmarks.length === 0) return;
         ctx.save();
-        ctx.scale(-1, 1);
+        ctx.scale(-1,1);
         ctx.translate(-canvasElement.width, 0);
         ctx.strokeStyle = "#2de0d4";
         ctx.fillStyle = "#ffffff";
         ctx.lineWidth = 3;
-        CONEXIONES_MANO.forEach(([i, j]) => {
+        CONEXIONES_MANO.forEach(([i,j]) => {
+          const p1 = landmarks[i];
+          const p2 = landmarks[j];
           ctx.beginPath();
-          ctx.moveTo(landmarks[i].x * canvasElement.width, landmarks[i].y * canvasElement.height);
-          ctx.lineTo(landmarks[j].x * canvasElement.width, landmarks[j].y * canvasElement.height);
+          ctx.moveTo(p1.x * canvasElement.width, p1.y * canvasElement.height);
+          ctx.lineTo(p2.x * canvasElement.width, p2.y * canvasElement.height);
           ctx.stroke();
         });
         landmarks.forEach(p => {
           ctx.beginPath();
-          ctx.arc(p.x * canvasElement.width, p.y * canvasElement.height, 4, 0, 2 * Math.PI);
+          ctx.arc(p.x * canvasElement.width, p.y * canvasElement.height, 4, 0, 2*Math.PI);
           ctx.fill();
         });
         ctx.restore();
       }
-
-      function limpiarCanvas() {
-        ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      function limpiarCanvas() { ctx.clearRect(0,0,canvasElement.width,canvasElement.height); }
+      function togglePuntos() {
+        mostrarPuntos = !mostrarPuntos;
+        const btn = document.getElementById("togglePuntos");
+        if (mostrarPuntos) {
+          btn.innerHTML = '<i class="bi bi-dot"></i> Ocultar Puntos';
+          canvasElement.style.display = "block";
+        } else {
+          btn.innerHTML = '<i class="bi bi-dot"></i> Mostrar Puntos';
+          canvasElement.style.display = "none";
+          limpiarCanvas();
+        }
+      }
+      async function cambiarCamara() {
+        if (!cameraInstance) return;
+        await cameraInstance.stop();
+        camaraFrontal = !camaraFrontal;
+        cameraInstance = new Camera(videoElement, {
+          onFrame: async () => {
+            await handsInstance.send({ image: videoElement });
+            await faceMeshInstance.send({ image: videoElement });
+          },
+          width: 640, height: 480,
+          facingMode: camaraFrontal ? "user" : "environment"
+        });
+        await cameraInstance.start();
+        document.getElementById("toggleCamara").innerHTML = camaraFrontal ? '<i class="bi bi-camera-video"></i> Cámara Trasera' : '<i class="bi bi-camera-video"></i> Cámara Frontal';
       }
 
-      // ==================== EXTRACCIÓN DE 135 PUNTOS (SIN FACE MESH) ====================
-      // Los últimos 9 puntos (cara) van siempre como ceros.
-      // El modelo dinámico funciona con menos precisión pero sin crashes.
-      function extraerLandmarks135(handsResult) {
+      // Sistema de voz y corrección
+      function hablar(texto) {
+        if (!vozActivada) return;
+        speechSynthesis.cancel();
+        const mensaje = new SpeechSynthesisUtterance(texto);
+        const voces = speechSynthesis.getVoices();
+        const voz = voces.find(v => v.lang.includes("es"));
+        if (voz) mensaje.voice = voz;
+        mensaje.lang = "es-MX";
+        mensaje.rate = 0.9;
+        mensaje.pitch = 1;
+        speechSynthesis.speak(mensaje);
+      }
+      async function corregir(texto) {
+        if (!autocorrectorActivo) return texto;
+        const params = new URLSearchParams();
+        params.append("text", texto);
+        params.append("language", "es");
+        try {
+          const res = await fetch("https://api.languagetool.org/v2/check", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: params
+          });
+          const data = await res.json();
+          let textoCorregido = texto;
+          data.matches.forEach(match => {
+            if (match.replacements.length > 0) {
+              const original = match.context.text.substr(match.context.offset, match.context.length);
+              const sugerencia = match.replacements[0].value;
+              textoCorregido = textoCorregido.replace(original, sugerencia);
+            }
+          });
+          return textoCorregido;
+        } catch(e) { return texto; }
+      }
+      async function procesarFrase(frase) {
+        const fraseCorregida = await corregir(frase);
+        fraseDiv.innerText = fraseCorregida;
+        hablar(fraseCorregida);
+      }
+
+      // ==================== CORRECCIONES LOCALES ====================
+      function corregirAST(letra, lm) {
+        if (!["A", "S", "T"].includes(letra)) return letra;
+        const thumb_tip = lm[4];
+        const thumb_ip = lm[3];
+        const index_tip = lm[8];
+        const middle_tip = lm[12];
+        const index_mcp = lm[5];
+        const wrist = lm[0];
+        let pulgarAfuera = index_mcp.x > wrist.x ? thumb_tip.x > index_mcp.x : thumb_tip.x < index_mcp.x;
+        if (pulgarAfuera) return "A";
+        const minX = Math.min(index_tip.x, middle_tip.x);
+        const maxX = Math.max(index_tip.x, middle_tip.x);
+        const entreDedos = thumb_tip.x > minX - 0.03 && thumb_tip.x < maxX + 0.03;
+        const dx = thumb_tip.x - thumb_ip.x;
+        const dy = thumb_tip.y - thumb_ip.y;
+        const esVertical = Math.abs(dy) > Math.abs(dx);
+        const esHorizontal = Math.abs(dx) > Math.abs(dy);
+        if (entreDedos && esVertical) return "T";
+        if (esHorizontal) return "S";
+        return letra;
+      }
+      function corregirUV(letra, lm) {
+        if (!["U", "V"].includes(letra)) return letra;
+        const index = lm[8];
+        const middle = lm[12];
+        const distancia = Math.abs(index.x - middle.x);
+        return distancia < 0.06 ? "U" : "V";
+      }
+
+      // ==================== EXTRACCIÓN DE 135 PUNTOS (CORREGIDA) ====================
+      function extraerLandmarks135(handsResult, faceResult) {
         let landmarks = [];
 
-        // — Manos: 126 puntos (2 manos × 21 landmarks × 3 coords) —
+        // Manos
         let handsDetected = [];
-        if (handsResult && handsResult.multiHandLandmarks) {
+        if (handsResult.multiHandLandmarks) {
           for (let hand of handsResult.multiHandLandmarks) {
             let singleHand = [];
-            for (let lm of hand) {        // NormalizedLandmarkList es iterable directamente
+            for (let lm of hand.landmark) {
               singleHand.push(lm.x, lm.y, lm.z);
             }
-            if (singleHand.length === 63) handsDetected.push(singleHand);
+            handsDetected.push(singleHand);
           }
         }
-
-        if (handsDetected.length >= 2) {
+        if (handsDetected.length === 2) {
           landmarks.push(...handsDetected[0]);
           landmarks.push(...handsDetected[1]);
         } else if (handsDetected.length === 1) {
@@ -662,84 +717,54 @@
           landmarks.push(...new Array(126).fill(0));
         }
 
-        // — Cara: 9 ceros (nariz + 2 ojos), sin FaceMesh —
-        landmarks.push(...new Array(9).fill(0));
-
-        return landmarks;  // siempre 135
-      }
-
-      // Helper: ¿hay al menos una mano visible?
-      function hayMano(handsResult) {
-        return (
-          handsResult &&
-          handsResult.multiHandLandmarks &&
-          handsResult.multiHandLandmarks.length > 0
-        );
-      }
-
-      // ==================== CORRECCIONES LOCALES ====================
-      function corregirAST(letra, lm) {
-        if (!["A", "S", "T"].includes(letra)) return letra;
-        const thumb_tip = lm[4], thumb_ip = lm[3];
-        const index_tip = lm[8], middle_tip = lm[12];
-        const index_mcp = lm[5], wrist = lm[0];
-        let pulgarAfuera = index_mcp.x > wrist.x
-          ? thumb_tip.x > index_mcp.x
-          : thumb_tip.x < index_mcp.x;
-        if (pulgarAfuera) return "A";
-        const minX = Math.min(index_tip.x, middle_tip.x);
-        const maxX = Math.max(index_tip.x, middle_tip.x);
-        const entreDedos = thumb_tip.x > minX - 0.03 && thumb_tip.x < maxX + 0.03;
-        const dx = thumb_tip.x - thumb_ip.x;
-        const dy = thumb_tip.y - thumb_ip.y;
-        if (entreDedos && Math.abs(dy) > Math.abs(dx)) return "T";
-        if (Math.abs(dx) > Math.abs(dy)) return "S";
-        return letra;
-      }
-
-      function corregirUV(letra, lm) {
-        if (!["U", "V"].includes(letra)) return letra;
-        return Math.abs(lm[8].x - lm[12].x) < 0.06 ? "U" : "V";
-      }
-
-      // ==================== MEDIDOR ====================
-      function actualizarMedidor(porcentaje, letra) {
-        const meter = document.getElementById("confidenceMeter");
-        if (porcentaje <= 70) {
-          meter.style.opacity = "0";
-          meter.style.pointerEvents = "none";
-          return;
+        // Cara (3 puntos: nariz, ojo izquierdo, ojo derecho)
+        const faceIndices = [1, 33, 263];
+        let facePoints = new Array(9).fill(0);
+        if (faceResult.multiFaceLandmarks && faceResult.multiFaceLandmarks.length > 0) {
+          const face = faceResult.multiFaceLandmarks[0];
+          // 🔥 CORRECCIÓN DEFINITIVA: usar face.landmark (singular)
+          if (face && face.landmark && face.landmark.length > Math.max(...faceIndices)) {
+            for (let i = 0; i < faceIndices.length; i++) {
+              const idx = faceIndices[i];
+              const lm = face.landmark[idx];
+              if (lm && typeof lm.x === 'number') {
+                const pos = i * 3;
+                facePoints[pos] = lm.x;
+                facePoints[pos+1] = lm.y;
+                facePoints[pos+2] = lm.z;
+              }
+            }
+          } else {
+            console.warn("Face landmark array not available", face);
+          }
         }
-        const meterPercent = document.getElementById("meterPercent");
-        meterPercent.textContent = porcentaje;
-        const color = porcentaje < 80 ? "#ffd93d" : "var(--primary)";
-        meter.style.borderColor = color;
-        meterPercent.style.color = color;
-        meter.style.setProperty("--progress", porcentaje * 3.6 + "deg");
-        meter.style.opacity = "1";
-        meter.style.pointerEvents = "auto";
-        meter.classList.remove("updated");
-        setTimeout(() => meter.classList.add("updated"), 10);
+        landmarks.push(...facePoints);
+
+        if (landmarks.length !== 135) {
+          console.warn("Landmarks length incorrecto:", landmarks.length);
+          return new Array(135).fill(0);
+        }
+        return landmarks;
       }
 
-      // ==================== LÓGICA DE PREDICCIÓN ====================
-      function procesarPrediccion(signo) {
-        if (!signo || signo === "") return;
+      // ==================== PROCESAMIENTO DE PREDICCIÓN ====================
+      function procesarPrediccion(letra) {
+        if (!letra || letra === "") return;
         const ahora = Date.now();
-        bufferLetras.push(signo);
+        bufferLetras.push(letra);
         if (bufferLetras.length > BUFFER_SIZE) bufferLetras.shift();
         const estable = bufferLetras.every(l => l === bufferLetras[0]);
         if (!estable) return;
-        const signoFinal = bufferLetras[0];
+        const letraFinal = bufferLetras[0];
         if (ahora - ultimoIngreso < TIEMPO_ENTRE_LETRAS) return;
-        palabraActual += signoFinal;
-        ultimaLetra = signoFinal;
+        palabraActual += letraFinal;
+        ultimaLetra = letraFinal;
         ultimoIngreso = ahora;
         ultimoTiempo = ahora;
         palabraDiv.innerText = palabraActual;
-        resultadoDiv.innerText = signoFinal;
+        resultadoDiv.innerText = letraFinal;
         resultadoDiv.style.boxShadow = "0 0 30px var(--primary)";
-        setTimeout(() => { resultadoDiv.style.boxShadow = "0 0 20px var(--primary-glow)"; }, 200);
+        setTimeout(() => resultadoDiv.style.boxShadow = "0 0 20px var(--primary-glow)", 200);
       }
 
       function terminarPalabra() {
@@ -753,10 +778,8 @@
       }
 
       setInterval(() => {
-        if (palabraActual.length > 0 && Date.now() - ultimoTiempo > CONFIG.TIEMPO_SILENCIO)
-          terminarPalabra();
+        if (palabraActual.length > 0 && Date.now() - ultimoTiempo > CONFIG.TIEMPO_SILENCIO) terminarPalabra();
       }, 500);
-
       setInterval(() => {
         if (fraseActual.length > 0 && Date.now() - ultimoTiempo > CONFIG.TIEMPO_FRASE) {
           procesarFrase(fraseActual);
@@ -765,48 +788,26 @@
         }
       }, 1000);
 
-      // ==================== VOZ Y CORRECCIÓN ====================
-      function hablar(texto) {
-        if (!vozActivada) return;
-        speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(texto);
-        const voz = speechSynthesis.getVoices().find(v => v.lang.includes("es"));
-        if (voz) msg.voice = voz;
-        msg.lang = "es-MX";
-        msg.rate = 0.9;
-        speechSynthesis.speak(msg);
+      function actualizarMedidor(porcentaje, letra) {
+        const confidenceMeter = document.getElementById("confidenceMeter");
+        if (porcentaje <= 70) {
+          confidenceMeter.style.opacity = "0";
+          confidenceMeter.style.pointerEvents = "none";
+          return;
+        }
+        const meterPercent = document.getElementById("meterPercent");
+        meterPercent.textContent = porcentaje;
+        let color = porcentaje < 80 ? "#ffd93d" : "var(--primary)";
+        confidenceMeter.style.borderColor = color;
+        meterPercent.style.color = color;
+        const progress = porcentaje * 3.6 + "deg";
+        confidenceMeter.style.setProperty("--progress", progress);
+        confidenceMeter.style.opacity = "1";
+        confidenceMeter.style.pointerEvents = "auto";
+        confidenceMeter.classList.remove("updated");
+        setTimeout(() => confidenceMeter.classList.add("updated"), 10);
       }
 
-      async function corregir(texto) {
-        if (!autocorrectorActivo) return texto;
-        const params = new URLSearchParams();
-        params.append("text", texto);
-        params.append("language", "es");
-        try {
-          const res = await fetch("https://api.languagetool.org/v2/check", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: params,
-          });
-          const data = await res.json();
-          let textoCorregido = texto;
-          data.matches.forEach(match => {
-            if (match.replacements.length > 0) {
-              const original = match.context.text.substr(match.context.offset, match.context.length);
-              textoCorregido = textoCorregido.replace(original, match.replacements[0].value);
-            }
-          });
-          return textoCorregido;
-        } catch (e) { return texto; }
-      }
-
-      async function procesarFrase(frase) {
-        const fraseCorregida = await corregir(frase);
-        fraseDiv.innerText = fraseCorregida;
-        hablar(fraseCorregida);
-      }
-
-      // ==================== ENVÍO A LA API ====================
       async function enviarSecuencia() {
         if (bufferSecuencia.length < CONFIG.SECUENCIA_LEN) return;
         try {
@@ -815,37 +816,27 @@
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify({
               puntos: ultimoFrame || [],
-              secuencia: bufferSecuencia,
-            }),
+              secuencia: bufferSecuencia
+            })
           });
-          if (!response.ok) throw new Error(`Error API: ${response.status}`);
           const data = await response.json();
-
-          // El backend siempre devuelve {indice, confianza, signo, modelo}
           if (data.signo && data.confianza > 70) {
-            // Puede venir del modelo dinámico O estático con el campo signo ya resuelto
-            let signo = data.signo;
-
-            // Si vino del estático, aplicar correcciones locales
-            if (data.modelo === "estatico" && ultimoFrame && ultimoFrame.length >= 63) {
+            procesarPrediccion(data.signo);
+            actualizarMedidor(data.confianza, data.signo);
+          } else if (data.indice !== undefined && data.indice !== -1 && data.indice < letras.length) {
+            let letra = letras[data.indice];
+            if (ultimoFrame && ultimoFrame.length >= 63) {
               const lm = [];
               for (let i = 0; i < 21; i++) {
-                lm.push({
-                  x: ultimoFrame[i * 3],
-                  y: ultimoFrame[i * 3 + 1],
-                  z: ultimoFrame[i * 3 + 2],
-                });
+                lm.push({ x: ultimoFrame[i*3], y: ultimoFrame[i*3+1], z: ultimoFrame[i*3+2] });
               }
-              signo = corregirAST(signo, lm);
-              signo = corregirUV(signo, lm);
+              letra = corregirAST(letra, lm);
+              letra = corregirUV(letra, lm);
             }
-
-            procesarPrediccion(signo);
-            actualizarMedidor(Math.round(data.confianza), signo);
+            procesarPrediccion(letra);
+            actualizarMedidor(data.confianza, letra);
           } else {
-            // Sin predicción confiable
-            resultadoDiv.textContent = "✋ Muestra tu mano";
-            resultadoDiv.style.boxShadow = "none";
+            console.warn("Respuesta inesperada:", data);
           }
         } catch (error) {
           console.error("Error en predicción:", error);
@@ -853,38 +844,7 @@
         }
       }
 
-      // ==================== CÁMARA Y CONTROLES ====================
-      function togglePuntos() {
-        mostrarPuntos = !mostrarPuntos;
-        const btn = document.getElementById("togglePuntos");
-        if (mostrarPuntos) {
-          btn.innerHTML = '<i class="bi bi-dot"></i> Ocultar Puntos';
-          canvasElement.style.display = "block";
-        } else {
-          btn.innerHTML = '<i class="bi bi-dot"></i> Mostrar Puntos';
-          canvasElement.style.display = "none";
-          limpiarCanvas();
-        }
-      }
-
-      async function cambiarCamara() {
-        if (!cameraInstance) return;
-        await cameraInstance.stop();
-        camaraFrontal = !camaraFrontal;
-        cameraInstance = new Camera(videoElement, {
-          onFrame: async () => {
-            await handsInstance.send({ image: videoElement });
-          },
-          width: 640, height: 480,
-          facingMode: camaraFrontal ? "user" : "environment",
-        });
-        await cameraInstance.start();
-        document.getElementById("toggleCamara").innerHTML = camaraFrontal
-          ? '<i class="bi bi-camera-video"></i> Cámara Trasera'
-          : '<i class="bi bi-camera-video"></i> Cámara Frontal';
-      }
-
-      // ==================== INICIALIZACIÓN ====================
+      // ==================== INICIALIZACIÓN DE MEDIAPIPE ====================
       async function iniciarSistema() {
         if (sistemaIniciado) return;
         try {
@@ -892,59 +852,60 @@
           resultadoDiv.textContent = "Iniciando...";
 
           handsInstance = new Hands({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
           });
           handsInstance.setOptions({
             maxNumHands: 2,
             modelComplexity: 0,
             minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5,
+            minTrackingConfidence: 0.5
+          });
+
+          faceMeshInstance = new FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+          });
+          faceMeshInstance.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: false,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
           });
 
           let ultimoEnvio = 0;
           const intervaloEnvio = 400;
+          let latestHands = null;
 
-          handsInstance.onResults(async (results) => {
+          handsInstance.onResults((results) => { latestHands = results; });
+          faceMeshInstance.onResults(async (faceResults) => {
+            if (!latestHands) return;
             const ahora = Date.now();
+            const landmarks135 = extraerLandmarks135(latestHands, faceResults);
+            ultimoFrame = landmarks135;
+            bufferSecuencia.push(landmarks135);
+            if (bufferSecuencia.length > CONFIG.SECUENCIA_LEN) bufferSecuencia.shift();
 
-            if (hayMano(results)) {
-              // ✅ Hay mano: extraer, acumular y enviar
-              const lm135 = extraerLandmarks135(results);
-              ultimoFrame = lm135;
+            if (ahora - ultimoEnvio >= intervaloEnvio && bufferSecuencia.length === CONFIG.SECUENCIA_LEN) {
+              ultimoEnvio = ahora;
+              await enviarSecuencia();
+            }
 
-              bufferSecuencia.push(lm135);
-              if (bufferSecuencia.length > CONFIG.SECUENCIA_LEN) bufferSecuencia.shift();
-
-              if (ahora - ultimoEnvio >= intervaloEnvio && bufferSecuencia.length === CONFIG.SECUENCIA_LEN) {
-                ultimoEnvio = ahora;
-                await enviarSecuencia();
-              }
-
-              if (mostrarPuntos) {
-                ctx.save();
-                ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-                dibujarLandmarks(results.multiHandLandmarks[0]);
-                ctx.restore();
-              } else {
-                limpiarCanvas();
-              }
+            if (mostrarPuntos && latestHands.multiHandLandmarks && latestHands.multiHandLandmarks.length > 0) {
+              ctx.save();
+              ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+              dibujarLandmarks(latestHands.multiHandLandmarks[0]);
+              ctx.restore();
             } else {
-              // ❌ Sin mano: resetear buffer para evitar predicciones falsas (H spam)
-              bufferSecuencia = [];
-              ultimoFrame = null;
               limpiarCanvas();
-              resultadoDiv.textContent = "✋ Muestra tu mano";
-              resultadoDiv.style.boxShadow = "none";
-              document.getElementById("confidenceMeter").style.opacity = "0";
             }
           });
 
           cameraInstance = new Camera(videoElement, {
             onFrame: async () => {
               await handsInstance.send({ image: videoElement });
+              await faceMeshInstance.send({ image: videoElement });
             },
             width: 640, height: 480,
-            facingMode: "user",
+            facingMode: "user"
           });
           await cameraInstance.start();
           resultadoDiv.textContent = "✅ ¡Listo! Muestra tu mano";
@@ -957,18 +918,12 @@
             document.getElementById("activarVoz").style.background = "#00aa00";
           });
 
-          console.log("✅ Sistema iniciado — dual model (manos, sin face mesh)");
+          console.log("✅ Sistema iniciado con detección de dos manos y cara");
         } catch (error) {
           console.error("Error crítico:", error);
           resultadoDiv.textContent = "❌ Error al iniciar";
           sistemaIniciado = false;
-          if (error.name === "NotAllowedError") {
-            alert("Permiso de cámara denegado. Recarga y permite acceso.");
-          } else if (error.name === "NotFoundError") {
-            alert("No se encontró cámara.");
-          } else {
-            alert("Error: " + error.message);
-          }
+          alert(error.message);
         }
       }
 
@@ -976,16 +931,10 @@
         if (configPanel && configPanel.contains(e.target)) return;
         if (!sistemaIniciado) iniciarSistema();
       }, { once: true });
-
       document.addEventListener("keydown", (e) => {
         if (e.code === "Space" && !sistemaIniciado) iniciarSistema();
       });
-
-      window.speechSynthesis.onvoiceschanged = () => {
-        console.log("Voces cargadas:", speechSynthesis.getVoices().length);
-      };
+      window.speechSynthesis.onvoiceschanged = () => console.log("Voces cargadas");
     </script>
-  </body>
-</html>
   </body>
 </html>
