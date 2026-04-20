@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SeñIA - Intérprete Avanzado</title>
 
-    <!-- Librerías MediaPipe (Hands + FaceMesh) -->
+    <!-- Librerías MediaPipe -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
     <style>
@@ -43,7 +42,6 @@
         min-height: 100vh;
         transition: background-color var(--transition-speed), color var(--transition-speed);
       }
-      /* Botón de tema flotante */
       .theme-toggle {
         position: fixed;
         top: 20px;
@@ -66,7 +64,7 @@
         transform: scale(1.1) rotate(10deg);
         box-shadow: 0 0 20px var(--primary-glow);
       }
-      /* Panel de configuración flotante */
+      /* Panel de configuración (simplificado para ahorrar espacio, pero funcional) */
       .config-panel {
         position: fixed;
         bottom: 20px;
@@ -81,312 +79,58 @@
         max-height: 90vh;
         overflow-y: auto;
       }
-      .config-panel.minimizado {
-        width: 60px;
-        height: 60px;
-        padding: 0;
-        border-radius: 50%;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .config-panel.expandido {
-        width: 320px;
-        padding: 20px;
-        border-radius: 20px;
-      }
-      .config-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-        color: var(--primary);
-        font-weight: bold;
-      }
+      .config-panel.minimizado { width: 60px; height: 60px; padding: 0; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+      .config-panel.expandido { width: 320px; padding: 20px; border-radius: 20px; }
+      .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: var(--primary); font-weight: bold; }
       .config-panel.minimizado .config-header { display: none; }
       .config-header h3 { margin: 0; font-size: 1rem; }
-      .btn-minimize {
-        background: none;
-        border: none;
-        color: var(--primary);
-        cursor: pointer;
-        font-size: 1.2rem;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
+      .btn-minimize { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 1.2rem; padding: 0; display: flex; align-items: center; justify-content: center; }
       .btn-minimize:hover { color: var(--text-main); }
       .config-content { display: none; }
       .config-panel.expandido .config-content { display: block; }
-      .config-section {
-        margin-bottom: 15px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid var(--primary-glow);
-      }
+      .config-section { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--primary-glow); }
       .config-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-      .config-label {
-        display: block;
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        margin-bottom: 5px;
-        font-weight: 500;
-      }
-      .config-input-group {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .config-input {
-        flex: 1;
-        background: var(--bg-color);
-        border: 1px solid var(--primary-glow);
-        color: var(--text-main);
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-      }
-      .config-input:focus {
-        outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 10px var(--primary-glow);
-      }
+      .config-label { display: block; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; }
+      .config-input-group { display: flex; gap: 8px; align-items: center; }
+      .config-input { flex: 1; background: var(--bg-color); border: 1px solid var(--primary-glow); color: var(--text-main); padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; transition: all 0.3s ease; }
+      .config-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
       .config-input-unit { color: var(--text-muted); font-size: 0.85rem; min-width: 30px; }
-      .config-toggle {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px;
-        background: var(--bg-color);
-        border-radius: 8px;
-        border: 1px solid var(--primary-glow);
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-      .config-toggle:hover {
-        border-color: var(--primary);
-        box-shadow: 0 0 10px var(--primary-glow);
-      }
-      .toggle-switch {
-        width: 40px;
-        height: 22px;
-        background: var(--text-muted);
-        border-radius: 11px;
-        position: relative;
-        transition: background 0.3s ease;
-      }
+      .config-toggle { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--bg-color); border-radius: 8px; border: 1px solid var(--primary-glow); cursor: pointer; transition: all 0.3s ease; }
+      .config-toggle:hover { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+      .toggle-switch { width: 40px; height: 22px; background: var(--text-muted); border-radius: 11px; position: relative; transition: background 0.3s ease; }
       .toggle-switch.active { background: var(--primary); }
-      .toggle-switch::before {
-        content: "";
-        position: absolute;
-        width: 18px;
-        height: 18px;
-        background: var(--bg-color);
-        border-radius: 50%;
-        top: 2px;
-        left: 2px;
-        transition: left 0.3s ease;
-      }
+      .toggle-switch::before { content: ""; position: absolute; width: 18px; height: 18px; background: var(--bg-color); border-radius: 50%; top: 2px; left: 2px; transition: left 0.3s ease; }
       .toggle-switch.active::before { left: 20px; }
       .toggle-label { flex: 1; color: var(--text-main); font-size: 0.95rem; }
       .config-button-group { margin-top: 15px; display: grid; gap: 8px; }
-      .config-btn {
-        background: var(--bg-color);
-        color: var(--primary);
-        border: 1px solid var(--primary);
-        padding: 8px 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-      }
-      .config-btn:hover {
-        background: var(--primary);
-        color: var(--bg-color);
-        box-shadow: 0 0 10px var(--primary-glow);
-      }
+      .config-btn { background: var(--bg-color); color: var(--primary); border: 1px solid var(--primary); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 6px; }
+      .config-btn:hover { background: var(--primary); color: var(--bg-color); box-shadow: 0 0 10px var(--primary-glow); }
       /* Contenedor principal */
-      #main-wrapper {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-        flex: 1;
-        padding: 12px;
-        max-width: 850px;
-        margin: 0 auto;
-        width: 100%;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-      }
+      #main-wrapper { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; flex: 1; padding: 12px; max-width: 850px; margin: 0 auto; width: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
       #main-wrapper.visible { opacity: 1; transform: translateY(0); }
-      .page-header {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        padding: 10px 0 15px 0;
-        border-bottom: 1px solid var(--primary-glow);
-        margin-bottom: 10px;
-        gap: 15px;
-      }
+      .page-header { width: 100%; display: flex; align-items: center; padding: 10px 0 15px 0; border-bottom: 1px solid var(--primary-glow); margin-bottom: 10px; gap: 15px; }
       .page-header img { height: 50px; width: auto; max-width: 50px; }
       .page-header h1 { margin: 0; font-size: 1.3rem; color: var(--primary); flex: 1; }
-      .texto-panel {
-        width: 100%;
-        max-width: 600px;
-        margin: 5px 0;
-        position: relative;
-        z-index: 100;
-      }
-      .palabra-container, .frase-container {
-        background: var(--card-bg);
-        border-radius: 12px;
-        padding: 10px 12px;
-        margin: 5px 0;
-        border: 1px solid var(--primary-glow);
-        box-shadow: 0 0 10px rgba(45, 224, 212, 0.2);
-        transition: all 0.3s ease;
-        min-height: auto;
-      }
-      .palabra-container h3, .frase-container h3 {
-        margin: 0 0 3px 0;
-        color: var(--primary);
-        font-size: 0.8rem;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-      #palabra, #frase {
-        font-size: 1rem;
-        word-break: break-word;
-        min-height: 1.2rem;
-        color: var(--text-main);
-        line-height: 1.4;
-      }
-      #resultado {
-        font-size: 1.8rem;
-        font-weight: bold;
-        margin: 8px 0;
-        padding: 12px 25px;
-        border-radius: 15px;
-        background: var(--card-bg);
-        color: var(--primary);
-        min-height: 45px;
-        text-align: center;
-        border: 2px solid var(--primary-glow);
-        box-shadow: 0 0 15px var(--primary-glow);
-        width: 100%;
-        max-width: 450px;
-        transition: all 0.3s ease;
-      }
-      .video-container {
-        position: relative;
-        width: 100%;
-        max-width: 550px;
-        aspect-ratio: 4 / 3;
-        background: #000;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
-        border: 3px solid var(--card-bg);
-        margin: 8px 0;
-      }
-      video {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transform: scaleX(-1);
-      }
-      .output_canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        display: none;
-        z-index: 5;
-      }
-      .scan-line {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background: var(--primary);
-        box-shadow: 0 0 15px var(--primary);
-        animation: scanning 3s infinite linear;
-        z-index: 10;
-        opacity: 0.5;
-      }
-      @keyframes scanning {
-        0% { top: 0; }
-        50% { top: 100%; }
-        100% { top: 0; }
-      }
-      .confidence-meter {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        width: 100px;
-        height: 100px;
-        background: rgba(11, 41, 38, 0.25);
-        border: 2px solid var(--primary);
-        border-radius: 50%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 20;
-        box-shadow: 0 0 15px rgba(45, 224, 212, 0.3);
-        backdrop-filter: blur(3px);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
+      .texto-panel { width: 100%; max-width: 600px; margin: 5px 0; position: relative; z-index: 100; }
+      .palabra-container, .frase-container { background: var(--card-bg); border-radius: 12px; padding: 10px 12px; margin: 5px 0; border: 1px solid var(--primary-glow); box-shadow: 0 0 10px rgba(45, 224, 212, 0.2); transition: all 0.3s ease; min-height: auto; }
+      .palabra-container h3, .frase-container h3 { margin: 0 0 3px 0; color: var(--primary); font-size: 0.8rem; display: flex; align-items: center; gap: 5px; }
+      #palabra, #frase { font-size: 1rem; word-break: break-word; min-height: 1.2rem; color: var(--text-main); line-height: 1.4; }
+      #resultado { font-size: 1.8rem; font-weight: bold; margin: 8px 0; padding: 12px 25px; border-radius: 15px; background: var(--card-bg); color: var(--primary); min-height: 45px; text-align: center; border: 2px solid var(--primary-glow); box-shadow: 0 0 15px var(--primary-glow); width: 100%; max-width: 450px; transition: all 0.3s ease; }
+      .video-container { position: relative; width: 100%; max-width: 550px; aspect-ratio: 4 / 3; background: #000; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5); border: 3px solid var(--card-bg); margin: 8px 0; }
+      video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+      .output_canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; z-index: 5; }
+      .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--primary); box-shadow: 0 0 15px var(--primary); animation: scanning 3s infinite linear; z-index: 10; opacity: 0.5; }
+      @keyframes scanning { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
+      .confidence-meter { position: absolute; top: 12px; right: 12px; width: 100px; height: 100px; background: rgba(11, 41, 38, 0.25); border: 2px solid var(--primary); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; box-shadow: 0 0 15px rgba(45, 224, 212, 0.3); backdrop-filter: blur(3px); opacity: 0; transition: opacity 0.3s ease; }
       .meter-label { font-size: 0.55rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0; }
       .meter-value { font-size: 1.6rem; font-weight: bold; color: var(--primary); text-shadow: 0 0 8px var(--primary-glow); margin: 0; line-height: 1; }
       .meter-percent { font-size: 0.65rem; color: var(--text-muted); }
       .meter-letter { font-size: 0.9rem; color: var(--primary); font-weight: bold; margin-top: 2px; background: rgba(45, 224, 212, 0.15); min-width: 22px; height: 22px; display: none; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid var(--primary-glow); }
-      .meter-ring {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        background: conic-gradient( var(--primary) 0deg, var(--primary) var(--progress), transparent var(--progress) );
-        opacity: 0.3;
-      }
-      @keyframes pulse-meter {
-        0% { box-shadow: 0 0 20px rgba(45, 224, 212, 0.4); }
-        50% { box-shadow: 0 0 35px rgba(45, 224, 212, 0.8); }
-        100% { box-shadow: 0 0 20px rgba(45, 224, 212, 0.4); }
-      }
+      .meter-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; background: conic-gradient( var(--primary) 0deg, var(--primary) var(--progress), transparent var(--progress) ); opacity: 0.3; }
+      @keyframes pulse-meter { 0% { box-shadow: 0 0 20px rgba(45, 224, 212, 0.4); } 50% { box-shadow: 0 0 35px rgba(45, 224, 212, 0.8); } 100% { box-shadow: 0 0 20px rgba(45, 224, 212, 0.4); } }
       .confidence-meter.updated { animation: pulse-meter 0.6s ease-out; }
       .controles { margin: 15px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
-      .btn {
-        background: var(--card-bg);
-        color: var(--primary);
-        border: 2px solid var(--primary);
-        padding: 10px 20px;
-        border-radius: 15px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
+      .btn { background: var(--card-bg); color: var(--primary); border: 2px solid var(--primary); padding: 10px 20px; border-radius: 15px; cursor: pointer; font-weight: bold; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
       .btn:hover { background: var(--primary); color: var(--bg-color); box-shadow: 0 0 15px var(--primary-glow); }
       #activarVoz { background: #0055aa; border-color: #ffffff; color: white; }
       #activarVoz:hover { background: #0066cc; box-shadow: 0 0 15px #00aaff; }
@@ -464,7 +208,7 @@
     </div>
 
     <script>
-      // ==================== LÓGICA DE TEMA ====================
+      // ==================== LÓGICA DE TEMA Y PANEL ====================
       const themeBtn = document.getElementById("theme-btn");
       const themeIcon = document.getElementById("theme-icon");
       const body = document.body;
@@ -484,7 +228,6 @@
         }
       });
 
-      // Panel de configuración
       const configPanel = document.getElementById("configPanel");
       const btnMinimizePanel = document.getElementById("btnMinimizePanel");
       const tiempoFraseInput = document.getElementById("tiempoFrase");
@@ -531,7 +274,6 @@
       let fraseActual = "";
       let ultimaLetra = "";
       let ultimoTiempo = Date.now();
-      let manoVisible = false;
       let vozActivada = false;
       let bufferLetras = [];
       const BUFFER_SIZE = 5;
@@ -541,7 +283,6 @@
       let bufferSecuencia = [];
       let ultimoFrame = null;
 
-      // Elementos DOM
       const videoElement = document.querySelector(".input_video");
       const canvasElement = document.querySelector(".output_canvas");
       const resultadoDiv = document.getElementById("resultado");
@@ -549,7 +290,6 @@
       const fraseDiv = document.getElementById("frase");
       const ctx = canvasElement.getContext("2d");
 
-      // Etiquetas estáticas (para el modelo estático)
       const letras = ["A","B","C","D","E","F","G","H","I","L","M","N","O","P","R","S","T","U","V","W","Y"];
 
       let mostrarPuntos = false;
@@ -620,7 +360,6 @@
         document.getElementById("toggleCamara").innerHTML = camaraFrontal ? '<i class="bi bi-camera-video"></i> Cámara Trasera' : '<i class="bi bi-camera-video"></i> Cámara Frontal';
       }
 
-      // Sistema de voz y corrección
       function hablar(texto) {
         if (!vozActivada) return;
         speechSynthesis.cancel();
@@ -662,7 +401,7 @@
         hablar(fraseCorregida);
       }
 
-      // ==================== CORRECCIONES LOCALES ====================
+      // Correcciones locales (AST y UV)
       function corregirAST(letra, lm) {
         if (!["A", "S", "T"].includes(letra)) return letra;
         const thumb_tip = lm[4];
@@ -692,13 +431,13 @@
         return distancia < 0.06 ? "U" : "V";
       }
 
-      // ==================== EXTRACCIÓN DE 135 PUNTOS (MUY DEFENSIVA) ====================
+      // ==================== FUNCIÓN CORREGIDA DE EXTRACCIÓN DE 135 PUNTOS ====================
       function extraerLandmarks135(handsResult, faceResult) {
         let landmarks = [];
 
-        // --- Manos (siempre 126 puntos, con ceros si faltan) ---
+        // Manos
         let handsDetected = [];
-        if (handsResult && handsResult.multiHandLandmarks) {
+        if (handsResult.multiHandLandmarks) {
           for (let hand of handsResult.multiHandLandmarks) {
             let singleHand = [];
             for (let lm of hand.landmark) {
@@ -717,35 +456,39 @@
           landmarks.push(...new Array(126).fill(0));
         }
 
-        // --- Cara (3 puntos: 9 valores) ---
-        let facePoints = new Array(9).fill(0);
-        if (faceResult && faceResult.multiFaceLandmarks && faceResult.multiFaceLandmarks.length > 0) {
+        // Cara
+        let facePoints = [0,0,0, 0,0,0, 0,0,0];
+        if (faceResult.multiFaceLandmarks && faceResult.multiFaceLandmarks.length > 0) {
           const face = faceResult.multiFaceLandmarks[0];
-          if (face && typeof face === 'object' && face.landmark && Array.isArray(face.landmark) && face.landmark.length >= 264) {
-            const indices = [1, 33, 263];
-            for (let idx of indices) {
-              const lm = face.landmark[idx];
-              if (lm && typeof lm.x === 'number') {
-                const pos = idx === 1 ? 0 : (idx === 33 ? 1 : 2);
-                facePoints[pos] = lm.x;
-                facePoints[pos+1] = lm.y;
-                facePoints[pos+2] = lm.z;
-              }
+          if (face && face.landmark && Array.isArray(face.landmark) && face.landmark.length > 263) {
+            const nose = face.landmark[1];
+            const leftEye = face.landmark[33];
+            const rightEye = face.landmark[263];
+            if (nose && leftEye && rightEye) {
+              facePoints[0] = nose.x;
+              facePoints[1] = nose.y;
+              facePoints[2] = nose.z;
+              facePoints[3] = leftEye.x;
+              facePoints[4] = leftEye.y;
+              facePoints[5] = leftEye.z;
+              facePoints[6] = rightEye.x;
+              facePoints[7] = rightEye.y;
+              facePoints[8] = rightEye.z;
             }
           } else {
-            console.warn("Face object no tiene landmark o no es válido", face);
+            console.warn("FaceMesh no tiene landmark array válido", face);
           }
         }
         landmarks.push(...facePoints);
 
         if (landmarks.length !== 135) {
-          console.warn("Landmarks length incorrecto:", landmarks.length);
+          console.error("Landmarks length incorrecto:", landmarks.length);
           return new Array(135).fill(0);
         }
         return landmarks;
       }
 
-      // ==================== PROCESAMIENTO DE PREDICCIÓN ====================
+      // Procesar predicción
       function procesarPrediccion(letra) {
         if (!letra || letra === "") return;
         const ahora = Date.now();
@@ -842,7 +585,7 @@
         }
       }
 
-      // ==================== INICIALIZACIÓN DE MEDIAPIPE ====================
+      // Inicialización de MediaPipe
       async function iniciarSistema() {
         if (sistemaIniciado) return;
         try {
