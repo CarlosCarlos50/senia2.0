@@ -692,21 +692,22 @@
         return distancia < 0.06 ? "U" : "V";
       }
 
-      // ==================== EXTRACCIÓN DE 135 PUNTOS (CORREGIDA) ====================
-      function extraerLandmarks135(handsResult, faceResult) {
+    function extraerLandmarks135(handsResult, faceResult) {
         let landmarks = [];
-
-        // Manos
+        
+        // ==================== MANOS ====================
         let handsDetected = [];
         if (handsResult.multiHandLandmarks) {
           for (let hand of handsResult.multiHandLandmarks) {
             let singleHand = [];
-            for (let lm of hand.landmark) {
+            // CORRECCIÓN: En JS 'hand' ya es un array, quitamos '.landmark'
+            for (let lm of hand) {
               singleHand.push(lm.x, lm.y, lm.z);
             }
             handsDetected.push(singleHand);
           }
         }
+        
         if (handsDetected.length === 2) {
           landmarks.push(...handsDetected[0]);
           landmarks.push(...handsDetected[1]);
@@ -717,16 +718,18 @@
           landmarks.push(...new Array(126).fill(0));
         }
 
-        // Cara (3 puntos: nariz, ojo izquierdo, ojo derecho)
+        // ==================== CARA ====================
         const faceIndices = [1, 33, 263];
         let facePoints = new Array(9).fill(0);
+        
         if (faceResult.multiFaceLandmarks && faceResult.multiFaceLandmarks.length > 0) {
           const face = faceResult.multiFaceLandmarks[0];
-          // 🔥 CORRECCIÓN DEFINITIVA: usar face.landmark (singular)
-          if (face && face.landmark && face.landmark.length > Math.max(...faceIndices)) {
+          // CORRECCIÓN: 'face' es un array, quitamos '.landmark'
+          if (face && face.length > Math.max(...faceIndices)) {
             for (let i = 0; i < faceIndices.length; i++) {
               const idx = faceIndices[i];
-              const lm = face.landmark[idx];
+              const lm = face[idx]; // Acceso directo
+              
               if (lm && typeof lm.x === 'number') {
                 const pos = i * 3;
                 facePoints[pos] = lm.x;
@@ -735,15 +738,23 @@
               }
             }
           } else {
-            console.warn("Face landmark array not available", face);
+            console.warn("Face array not fully populated", face);
           }
         }
         landmarks.push(...facePoints);
 
-        if (landmarks.length !== 135) {
-          console.warn("Landmarks length incorrecto:", landmarks.length);
-          return new Array(135).fill(0);
+        // ==================== PREVENCIÓN DE ERROR API ====================
+        // IMPORTANTE: Tu backend espera 136 puntos, pero este cálculo da 135 (126 + 9).
+        // Rellenamos con un 0 extra al final para evitar que la API devuelva un error 500.
+        if (landmarks.length === 135) {
+            landmarks.push(0); 
         }
+
+        if (landmarks.length !== 136 && landmarks.length !== 135) {
+          console.warn("Landmarks length incorrecto:", landmarks.length);
+          return new Array(136).fill(0);
+        }
+        
         return landmarks;
       }
 
