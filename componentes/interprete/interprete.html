@@ -693,11 +693,11 @@
         return distancia < 0.06 ? "U" : "V";
       }
 
-      // ==================== EXTRACCIÓN DE 135 PUNTOS (CORREGIDA) ====================
+      // ==================== EXTRACCIÓN DE 135 PUNTOS (CORREGIDA Y ROBUSTA) ====================
       function extraerLandmarks135(handsResult, faceResult) {
         let landmarks = [];
 
-        // Manos
+        // --- Manos ---
         let handsDetected = [];
         if (handsResult.multiHandLandmarks) {
           for (let hand of handsResult.multiHandLandmarks) {
@@ -718,23 +718,29 @@
           landmarks.push(...new Array(126).fill(0));
         }
 
-        // Cara (3 puntos: nariz, ojo izquierdo, ojo derecho)
+        // --- Cara ---
         const faceIndices = [1, 33, 263];
         if (faceResult.multiFaceLandmarks && faceResult.multiFaceLandmarks.length > 0) {
           const face = faceResult.multiFaceLandmarks[0];
-          // Verificar que face sea un array y tenga los índices necesarios
-          if (face && face.length > Math.max(...faceIndices)) {
+          // Verificar que face sea un array y tenga los índices requeridos
+          if (Array.isArray(face) && face.length > Math.max(...faceIndices)) {
             for (let idx of faceIndices) {
               const lm = face[idx];
-              landmarks.push(lm.x, lm.y, lm.z);
+              if (lm && typeof lm.x === 'number') {
+                landmarks.push(lm.x, lm.y, lm.z);
+              } else {
+                landmarks.push(0, 0, 0);
+              }
             }
           } else {
+            // Si no es un array válido, rellenamos con ceros
             landmarks.push(...new Array(9).fill(0));
           }
         } else {
           landmarks.push(...new Array(9).fill(0));
         }
 
+        // Garantizar 135
         if (landmarks.length !== 135) {
           console.warn("Landmarks length incorrecto:", landmarks.length);
           return new Array(135).fill(0);
@@ -932,5 +938,4 @@
     </script>
   </body>
 </html>
-
 
