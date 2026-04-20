@@ -1137,31 +1137,40 @@
       }
 
   function extraerLandmarks135(handsResult, faceResult) {
-        let landmarks = [];
-        
-        // ==================== MANOS ====================
-        let handsDetected = [];
-        if (handsResult.multiHandLandmarks) {
-          for (let hand of handsResult.multiHandLandmarks) {
-            let singleHand = [];
-            // 🔥 ASEGÚRATE de que aquí diga "of hand", NO "of hand.landmark"
-            for (let lm of hand) {
-              singleHand.push(lm.x, lm.y, lm.z);
-            }
-            handsDetected.push(singleHand);
-          }
-        }
-        
-        if (handsDetected.length === 2) {
-          landmarks.push(...handsDetected[0]);
-          landmarks.push(...handsDetected[1]);
-        } else if (handsDetected.length === 1) {
-          landmarks.push(...handsDetected[0]);
-          landmarks.push(...new Array(63).fill(0));
-        } else {
-          landmarks.push(...new Array(126).fill(0));
-        }
+  let landmarks = [];
 
+  // --- MANOS (126 puntos) ---
+  let handsDetected = [];
+  if (handsResult.multiHandLandmarks) {
+    for (let hand of handsResult.multiHandLandmarks) {
+      let singleHand = [];
+      // 🔥 CORRECCIÓN: hand.landmark es el array de puntos
+      for (let lm of hand.landmark) {
+        singleHand.push(lm.x, lm.y, lm.z);
+      }
+      handsDetected.push(singleHand);
+    }
+  }
+  if (handsDetected.length === 2) {
+    landmarks.push(...handsDetected[0]);
+    landmarks.push(...handsDetected[1]);
+  } else if (handsDetected.length === 1) {
+    landmarks.push(...handsDetected[0]);
+    landmarks.push(...new Array(63).fill(0));
+  } else {
+    landmarks.push(...new Array(126).fill(0));
+  }
+
+  // --- CARA (9 puntos - temporalmente ceros) ---
+  // Rellenamos con 9 ceros para evitar cualquier error de acceso.
+  landmarks.push(...new Array(9).fill(0));
+
+  if (landmarks.length !== 135) {
+    console.warn("Landmarks length incorrecto:", landmarks.length);
+    return new Array(135).fill(0);
+  }
+  return landmarks;
+}
         // ==================== CARA ====================
         const faceIndices = [1, 33, 263];
         let facePoints = new Array(9).fill(0);
