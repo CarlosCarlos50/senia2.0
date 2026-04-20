@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SeñIA - Intérprete Avanzado</title>
 
-    <!-- Librerías MediaPipe (Hands + FaceMesh) -->
+    <!-- Librerías MediaPipe (solo Hands) -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 
     <!-- Bootstrap Icons -->
@@ -597,7 +596,6 @@
       let camaraFrontal = true;
       let cameraInstance = null;
       let handsInstance = null;
-      let faceMeshInstance = null;
       let sistemaIniciado = false;
 
       canvasElement.width = 640;
@@ -636,22 +634,21 @@
         ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
       }
 
-      // ==================== EXTRACCIÓN DE 135 PUNTOS (CORREGIDA) ====================
-      function extraerLandmarks135(handsResult, faceResult) {
+      // ==================== EXTRACCIÓN DE 135 PUNTOS (SIN FACE MESH) ====================
+      // Los últimos 9 puntos (cara) van siempre como ceros.
+      // El modelo dinámico funciona con menos precisión pero sin crashes.
+      function extraerLandmarks135(handsResult) {
         let landmarks = [];
 
-        // — Manos: siempre 126 puntos (2 manos × 21 landmarks × 3 coords) —
+        // — Manos: 126 puntos (2 manos × 21 landmarks × 3 coords) —
         let handsDetected = [];
         if (handsResult && handsResult.multiHandLandmarks) {
           for (let hand of handsResult.multiHandLandmarks) {
             let singleHand = [];
-            // La API legacy de MediaPipe Hands puede devolver
-            // el array directamente o con propiedad .landmark
-            const lmList = (hand.landmark) ? hand.landmark : hand;
-            for (let lm of lmList) {
+            for (let lm of hand) {        // NormalizedLandmarkList es iterable directamente
               singleHand.push(lm.x, lm.y, lm.z);
             }
-            handsDetected.push(singleHand);
+            if (singleHand.length === 63) handsDetected.push(singleHand);
           }
         }
 
@@ -665,46 +662,10 @@
           landmarks.push(...new Array(126).fill(0));
         }
 
-        // — Cara: nariz(1), ojo izq(33), ojo der(263) = 9 puntos —
-        // La API legacy de MediaPipe FaceMesh devuelve multiFaceLandmarks[0]
-        // como array plano: acceso directo face[index], NO face.landmark[index]
-        const faceIndices = [1, 33, 263];
-        let facePoints = new Array(9).fill(0);
-        try {
-          if (
-            faceResult &&
-            faceResult.multiFaceLandmarks &&
-            faceResult.multiFaceLandmarks.length > 0
-          ) {
-            const face = faceResult.multiFaceLandmarks[0];
-            // Soporte para ambos formatos posibles de la API
-            const lmArray = Array.isArray(face)
-              ? face
-              : (face.landmark || face);
-            if (lmArray && lmArray.length > 263) {
-              for (let i = 0; i < faceIndices.length; i++) {
-                const lm = lmArray[faceIndices[i]];
-                if (lm && typeof lm.x === "number") {
-                  facePoints[i * 3]     = lm.x;
-                  facePoints[i * 3 + 1] = lm.y;
-                  facePoints[i * 3 + 2] = lm.z;
-                }
-              }
-            }
-          }
-        } catch (e) {
-          // Si falla la cara, continuamos con ceros (no bloqueamos la detección de manos)
-          console.warn("⚠️ Error extrayendo landmarks de cara:", e.message);
-          facePoints = new Array(9).fill(0);
-        }
-        landmarks.push(...facePoints);
+        // — Cara: 9 ceros (nariz + 2 ojos), sin FaceMesh —
+        landmarks.push(...new Array(9).fill(0));
 
-        // — Garantía: siempre 135 —
-        if (landmarks.length !== 135) {
-          console.warn("⚠️ Landmarks length incorrecto:", landmarks.length);
-          return new Array(135).fill(0);
-        }
-        return landmarks;
+        return landmarks;  // siempre 135
       }
 
       // Helper: ¿hay al menos una mano visible?
@@ -913,7 +874,6 @@
         cameraInstance = new Camera(videoElement, {
           onFrame: async () => {
             await handsInstance.send({ image: videoElement });
-            await faceMeshInstance.send({ image: videoElement });
           },
           width: 640, height: 480,
           facingMode: camaraFrontal ? "user" : "environment",
@@ -931,7 +891,6 @@
           sistemaIniciado = true;
           resultadoDiv.textContent = "Iniciando...";
 
-          // — Hands —
           handsInstance = new Hands({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
           });
@@ -942,32 +901,15 @@
             minTrackingConfidence: 0.5,
           });
 
-          // — FaceMesh —
-          faceMeshInstance = new FaceMesh({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
-          });
-          faceMeshInstance.setOptions({
-            maxNumFaces: 1,
-            refineLandmarks: false,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5,
-          });
-
           let ultimoEnvio = 0;
           const intervaloEnvio = 400;
-          let latestHands = null;
 
-          handsInstance.onResults((results) => {
-            latestHands = results;
-          });
-
-          faceMeshInstance.onResults(async (faceResults) => {
-            if (!latestHands) return;
+          handsInstance.onResults(async (results) => {
             const ahora = Date.now();
 
-            if (hayMano(latestHands)) {
+            if (hayMano(results)) {
               // ✅ Hay mano: extraer, acumular y enviar
-              const lm135 = extraerLandmarks135(latestHands, faceResults);
+              const lm135 = extraerLandmarks135(results);
               ultimoFrame = lm135;
 
               bufferSecuencia.push(lm135);
@@ -978,17 +920,16 @@
                 await enviarSecuencia();
               }
 
-              // Dibujar puntos si están activados
               if (mostrarPuntos) {
                 ctx.save();
                 ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-                dibujarLandmarks(latestHands.multiHandLandmarks[0]);
+                dibujarLandmarks(results.multiHandLandmarks[0]);
                 ctx.restore();
               } else {
                 limpiarCanvas();
               }
             } else {
-              // ❌ Sin mano: resetear buffer para evitar predicciones falsas
+              // ❌ Sin mano: resetear buffer para evitar predicciones falsas (H spam)
               bufferSecuencia = [];
               ultimoFrame = null;
               limpiarCanvas();
@@ -998,11 +939,9 @@
             }
           });
 
-          // — Cámara —
           cameraInstance = new Camera(videoElement, {
             onFrame: async () => {
               await handsInstance.send({ image: videoElement });
-              await faceMeshInstance.send({ image: videoElement });
             },
             width: 640, height: 480,
             facingMode: "user",
@@ -1018,7 +957,7 @@
             document.getElementById("activarVoz").style.background = "#00aa00";
           });
 
-          console.log("✅ Sistema iniciado — manos + cara + dual model");
+          console.log("✅ Sistema iniciado — dual model (manos, sin face mesh)");
         } catch (error) {
           console.error("Error crítico:", error);
           resultadoDiv.textContent = "❌ Error al iniciar";
@@ -1046,5 +985,7 @@
         console.log("Voces cargadas:", speechSynthesis.getVoices().length);
       };
     </script>
+  </body>
+</html>
   </body>
 </html>
