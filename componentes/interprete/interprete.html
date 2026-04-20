@@ -692,7 +692,7 @@
         return distancia < 0.06 ? "U" : "V";
       }
 
-    function extraerLandmarks135(handsResult, faceResult) {
+  function extraerLandmarks135(handsResult, faceResult) {
         let landmarks = [];
         
         // ==================== MANOS ====================
@@ -700,7 +700,7 @@
         if (handsResult.multiHandLandmarks) {
           for (let hand of handsResult.multiHandLandmarks) {
             let singleHand = [];
-            // CORRECCIÓN: En JS 'hand' ya es un array, quitamos '.landmark'
+            // 🔥 ASEGÚRATE de que aquí diga "of hand", NO "of hand.landmark"
             for (let lm of hand) {
               singleHand.push(lm.x, lm.y, lm.z);
             }
@@ -724,11 +724,11 @@
         
         if (faceResult.multiFaceLandmarks && faceResult.multiFaceLandmarks.length > 0) {
           const face = faceResult.multiFaceLandmarks[0];
-          // CORRECCIÓN: 'face' es un array, quitamos '.landmark'
+          // 🔥 ASEGÚRATE de que no diga "face.landmark" en ningún lado aquí
           if (face && face.length > Math.max(...faceIndices)) {
             for (let i = 0; i < faceIndices.length; i++) {
               const idx = faceIndices[i];
-              const lm = face[idx]; // Acceso directo
+              const lm = face[idx]; 
               
               if (lm && typeof lm.x === 'number') {
                 const pos = i * 3;
@@ -737,22 +737,13 @@
                 facePoints[pos+2] = lm.z;
               }
             }
-          } else {
-            console.warn("Face array not fully populated", face);
           }
         }
         landmarks.push(...facePoints);
 
-        // ==================== PREVENCIÓN DE ERROR API ====================
-        // IMPORTANTE: Tu backend espera 136 puntos, pero este cálculo da 135 (126 + 9).
-        // Rellenamos con un 0 extra al final para evitar que la API devuelva un error 500.
-        if (landmarks.length === 135) {
-            landmarks.push(0); 
-        }
-
-        if (landmarks.length !== 136 && landmarks.length !== 135) {
+        if (landmarks.length !== 135) {
           console.warn("Landmarks length incorrecto:", landmarks.length);
-          return new Array(136).fill(0);
+          return new Array(135).fill(0);
         }
         
         return landmarks;
