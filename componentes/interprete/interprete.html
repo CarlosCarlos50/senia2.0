@@ -79,6 +79,87 @@
         transition: all 0.4s ease;
         max-width: 320px;
         max-height: 90vh;
+        overflow-y: auto<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SeñIA - Intérprete Avanzado</title>
+
+    <!-- Librerías MediaPipe (Hands + FaceMesh) -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <style>
+      /* ========== VARIABLES Y TEMA ========== */
+      :root {
+        --bg-color: #0b2926;
+        --primary: #2de0d4;
+        --primary-glow: rgba(45, 224, 212, 0.4);
+        --text-main: #ffffff;
+        --text-muted: #8abeb9;
+        --card-bg: #113b37;
+        --transition-speed: 0.4s;
+      }
+      [data-theme="light"] {
+        --bg-color: #f0f4f4;
+        --primary: #1a9e95;
+        --primary-glow: rgba(26, 158, 149, 0.2);
+        --text-main: #1a2e2c;
+        --text-muted: #5a7a76;
+        --card-bg: #ffffff;
+      }
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background-color: var(--bg-color);
+        margin: 0;
+        color: var(--text-main);
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        transition: background-color var(--transition-speed), color var(--transition-speed);
+      }
+      /* Botón de tema flotante */
+      .theme-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--card-bg);
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        width: 50px;
+        height: 50px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 9999;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      }
+      .theme-toggle:hover {
+        transform: scale(1.1) rotate(10deg);
+        box-shadow: 0 0 20px var(--primary-glow);
+      }
+      /* Panel de configuración flotante */
+      .config-panel {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--card-bg);
+        border: 2px solid var(--primary);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        z-index: 9998;
+        transition: all 0.4s ease;
+        max-width: 320px;
+        max-height: 90vh;
         overflow-y: auto;
       }
       .config-panel.minimizado {
@@ -662,7 +743,7 @@
         hablar(fraseCorregida);
       }
 
-      // ==================== CORRECCIONES LOCALES (AST y UV) ====================
+      // ==================== CORRECCIONES LOCALES ====================
       function corregirAST(letra, lm) {
         if (!["A", "S", "T"].includes(letra)) return letra;
         const thumb_tip = lm[4];
@@ -671,7 +752,6 @@
         const middle_tip = lm[12];
         const index_mcp = lm[5];
         const wrist = lm[0];
-        // A = pulgar afuera
         let pulgarAfuera = index_mcp.x > wrist.x ? thumb_tip.x > index_mcp.x : thumb_tip.x < index_mcp.x;
         if (pulgarAfuera) return "A";
         const minX = Math.min(index_tip.x, middle_tip.x);
@@ -693,11 +773,11 @@
         return distancia < 0.06 ? "U" : "V";
       }
 
-      // ==================== EXTRACCIÓN DE 135 PUNTOS (CORREGIDA Y ROBUSTA) ====================
+      // ==================== EXTRACCIÓN DE 135 PUNTOS (CORREGIDA) ====================
       function extraerLandmarks135(handsResult, faceResult) {
         let landmarks = [];
 
-        // --- Manos ---
+        // Manos
         let handsDetected = [];
         if (handsResult.multiHandLandmarks) {
           for (let hand of handsResult.multiHandLandmarks) {
@@ -718,29 +798,27 @@
           landmarks.push(...new Array(126).fill(0));
         }
 
-        // --- Cara ---
+        // Cara (3 puntos: nariz, ojo izquierdo, ojo derecho)
         const faceIndices = [1, 33, 263];
+        let facePoints = new Array(9).fill(0);
         if (faceResult.multiFaceLandmarks && faceResult.multiFaceLandmarks.length > 0) {
           const face = faceResult.multiFaceLandmarks[0];
-          // Verificar que face sea un array y tenga los índices requeridos
-          if (Array.isArray(face) && face.length > Math.max(...faceIndices)) {
+          if (face && face.landmark && face.landmark.length > Math.max(...faceIndices)) {
             for (let idx of faceIndices) {
-              const lm = face[idx];
+              const lm = face.landmark[idx];
               if (lm && typeof lm.x === 'number') {
-                landmarks.push(lm.x, lm.y, lm.z);
-              } else {
-                landmarks.push(0, 0, 0);
+                const pos = idx === 1 ? 0 : (idx === 33 ? 1 : 2);
+                facePoints[pos] = lm.x;
+                facePoints[pos+1] = lm.y;
+                facePoints[pos+2] = lm.z;
               }
             }
           } else {
-            // Si no es un array válido, rellenamos con ceros
-            landmarks.push(...new Array(9).fill(0));
+            console.warn("No se pudieron extraer puntos faciales");
           }
-        } else {
-          landmarks.push(...new Array(9).fill(0));
         }
+        landmarks.push(...facePoints);
 
-        // Garantizar 135
         if (landmarks.length !== 135) {
           console.warn("Landmarks length incorrecto:", landmarks.length);
           return new Array(135).fill(0);
@@ -750,6 +828,7 @@
 
       // ==================== PROCESAMIENTO DE PREDICCIÓN ====================
       function procesarPrediccion(letra) {
+        if (!letra || letra === "") return;
         const ahora = Date.now();
         bufferLetras.push(letra);
         if (bufferLetras.length > BUFFER_SIZE) bufferLetras.shift();
@@ -766,6 +845,7 @@
         resultadoDiv.style.boxShadow = "0 0 30px var(--primary)";
         setTimeout(() => resultadoDiv.style.boxShadow = "0 0 20px var(--primary-glow)", 200);
       }
+
       function terminarPalabra() {
         if (palabraActual.length > 0) {
           fraseActual += palabraActual + " ";
@@ -775,6 +855,7 @@
           fraseDiv.innerText = fraseActual;
         }
       }
+
       setInterval(() => {
         if (palabraActual.length > 0 && Date.now() - ultimoTiempo > CONFIG.TIEMPO_SILENCIO) terminarPalabra();
       }, 500);
@@ -806,7 +887,6 @@
         setTimeout(() => confidenceMeter.classList.add("updated"), 10);
       }
 
-      // Envío al backend (con secuencia)
       async function enviarSecuencia() {
         if (bufferSecuencia.length < CONFIG.SECUENCIA_LEN) return;
         try {
@@ -824,7 +904,6 @@
             actualizarMedidor(data.confianza, data.signo);
           } else if (data.indice !== undefined && data.indice !== -1 && data.indice < letras.length) {
             let letra = letras[data.indice];
-            // Necesitamos los landmarks de la mano actual para las correcciones
             if (ultimoFrame && ultimoFrame.length >= 63) {
               const lm = [];
               for (let i = 0; i < 21; i++) {
@@ -873,8 +952,8 @@
 
           let ultimoEnvio = 0;
           const intervaloEnvio = 400;
-
           let latestHands = null;
+
           handsInstance.onResults((results) => { latestHands = results; });
           faceMeshInstance.onResults(async (faceResults) => {
             if (!latestHands) return;
@@ -884,7 +963,7 @@
             bufferSecuencia.push(landmarks135);
             if (bufferSecuencia.length > CONFIG.SECUENCIA_LEN) bufferSecuencia.shift();
 
-            if (ahora - ultimoEnvio >= intervaloEnvio) {
+            if (ahora - ultimoEnvio >= intervaloEnvio && bufferSecuencia.length === CONFIG.SECUENCIA_LEN) {
               ultimoEnvio = ahora;
               await enviarSecuencia();
             }
@@ -938,4 +1017,3 @@
     </script>
   </body>
 </html>
-
